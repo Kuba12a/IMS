@@ -16,9 +16,9 @@ public class IdentityCreateCommandValidator : AbstractValidator<IdentityCreateCo
 {
     public IdentityCreateCommandValidator()
     {
-        RuleFor(command => command.Name).NotNull();
-        RuleFor(command => command.Email).NotNull();
-        RuleFor(command => command.Password).NotNull();
+        RuleFor(command => command.Name).NotEmpty();
+        RuleFor(command => command.Email).NotEmpty();
+        RuleFor(command => command.Password).NotEmpty();
     }
 }
 

@@ -1,6 +1,7 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.OpenApi.Models;
+using Platform.Api.Intermediaries.Filters;
 using Platform.Application.DependencyInjections;
 using Platform.Infrastructure.DependencyInjections;
 
@@ -13,7 +14,10 @@ public static class DependencyInjection
         services.Configure<KestrelServerOptions>(options => { options.AllowSynchronousIO = true; });
 
         services
-            .AddControllers()
+            .AddControllers(options =>
+            {
+                options.Filters.Add(typeof(ExceptionFilter));
+            })
             .ConfigureApiBehaviorOptions(options => { options.SuppressModelStateInvalidFilter = true; });
         services.AddEndpointsApiExplorer();
         
