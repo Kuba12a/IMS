@@ -1,0 +1,12 @@
+﻿{
+  "profiles": {
+    "Platform.Api": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:5000",
+      "dotnetRunMessages": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
