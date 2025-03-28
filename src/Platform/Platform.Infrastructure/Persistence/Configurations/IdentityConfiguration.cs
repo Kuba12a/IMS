@@ -11,5 +11,10 @@ public class IdentityConfiguration : IEntityTypeConfiguration<Identity>
         builder.HasIndex(i => i.Email).IsUnique();
         builder.HasIndex(i => i.EmailConfirmationTokenHash);
         builder.HasIndex(i => i.PasswordResetTokenHash);
+        
+        builder.HasMany(i => i.LoginAttempts).WithOne().IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
+        builder.HasMany(i => i.Sessions).WithOne().IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

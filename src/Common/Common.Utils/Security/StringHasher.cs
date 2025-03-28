@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Common.Utils.Security;
 
-public static class TokenHasher
+public static class StringHasher
 {
     public static string Hash(string token)
     {

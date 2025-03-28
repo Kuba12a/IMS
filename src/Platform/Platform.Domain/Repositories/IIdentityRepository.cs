@@ -5,5 +5,6 @@ namespace Platform.Domain.Repositories;
 
 public interface IIdentityRepository : IRepository<Identity>
 {
-    Task<Identity?> FirstOrDefaultAsync(string email, CancellationToken cancellationToken);
+    Task<Identity?> FirstOrDefaultByEmailAsync(string email, CancellationToken cancellationToken);
+    Task<Identity?> FirstOrDefaultByAuthCodeAsync(string authCode, CancellationToken cancellationToken = default);
 }

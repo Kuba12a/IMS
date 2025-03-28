@@ -1,4 +1,5 @@
 using Platform.Api;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +11,13 @@ builder.Configuration.Bind(nameof(PlatformSettings), platformSettings);
 platformSettings.Validate();
 
 builder.Services.AddPlatform(platformSettings);
-builder.Services.AddWebApi();
+builder.Services.AddWebApi(platformSettings.SecurityTokenSettings);
+
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext()
+    .WriteTo.Console());
 
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrEmpty(port))

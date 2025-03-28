@@ -5,6 +5,8 @@ using Platform.Infrastructure.Persistence;
 using Platform.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Platform.Domain.DomainServices;
+using Platform.Infrastructure.DomainServices;
 
 namespace Platform.Infrastructure.DependencyInjections;
 
@@ -44,10 +46,16 @@ internal class InfrastructureOptions : IInfrastructureOptions
         _services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         AddRepositories();
+        AddDomainServices();
     }
 
     private void AddRepositories()
     {
         _services.AddScoped<IIdentityRepository, IdentityRepository>();
+    }
+    
+    private void AddDomainServices()
+    {
+        _services.AddScoped<IIdentityDomainService, IdentityDomainService>();
     }
 }
