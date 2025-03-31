@@ -3,12 +3,14 @@ using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Platform.Application.Common.Behavior;
+using Platform.Application.Services.Auth;
 
 namespace Platform.Application.DependencyInjections;
 
 public interface IApplicationOptions
 {
     void AddCommandsAndQueries();
+    void AddServices(SecurityTokenSettings securityTokenSettings);
 }
 
 internal class ApplicationOptions : IApplicationOptions
@@ -27,5 +29,12 @@ internal class ApplicationOptions : IApplicationOptions
         _services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationPipelineBehavior<,>));
         
         _services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+    }
+    
+    public void AddServices(SecurityTokenSettings securityTokenSettings)
+    {
+        _services.AddSingleton(securityTokenSettings);
+        
+        _services.AddSingleton<ISecurityTokenService, SecurityTokenService>();
     }
 }

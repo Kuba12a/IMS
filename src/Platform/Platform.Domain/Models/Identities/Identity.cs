@@ -1,7 +1,9 @@
+using Common.Domain.Exceptions;
 using Common.Utils;
 using Common.Utils.Security;
 using Platform.Domain.Common;
 using Platform.Domain.Constants;
+using Platform.Domain.Dtos;
 
 namespace Platform.Domain.Models.Identities;
 
@@ -17,7 +19,8 @@ public class Identity : IAggregate
     public bool EmailConfirmed { get; private set; }
     public string? EmailConfirmationTokenHash { get; private set; }
     public DateTimeOffset? EmailConfirmationTokenValidTo { get; private set; }
-    
+    public List<LoginAttempt> LoginAttempts { get; private init; }
+    public List<Session> Sessions { get; private init; }
     public static Identity Create(string email, string password)
     {
         var emailConfirmationToken = AlphanumericRandomStringGenerator
@@ -31,8 +34,54 @@ public class Identity : IAggregate
             CreatedAt = Clock.Now,
             UpdatedAt = Clock.Now,
             EmailConfirmed = false,
-            EmailConfirmationTokenHash = TokenHasher.Hash(emailConfirmationToken),
+            EmailConfirmationTokenHash = StringHasher.Hash(emailConfirmationToken),
             EmailConfirmationTokenValidTo = Clock.Now + DomainConstants.EmailConfirmationTokenDuration,
+            LoginAttempts = [],
+            Sessions = []
         };
+    }
+    
+    public InitiateLoginResult InitiateLogin(string password, string codeChallenge)
+    {
+        if (PasswordHash == default || !PasswordHasher.Verify(password, PasswordHash))
+        {
+            throw new DomainException("Invalid Credentials");
+        }
+
+        if (!EmailConfirmed)
+        {
+            throw new DomainException("Email not confirmed");
+        }
+
+        var authCode = AlphanumericRandomStringGenerator.GenerateAlphanumericToken();
+        
+        LoginAttempts.Add(LoginAttempt.Create(
+            StringHasher.Hash(authCode),
+            codeChallenge,
+            Clock.Now.Add(DomainConstants.LoginAttemptDuration)));
+
+        UpdatedAt = Clock.Now;
+
+        return new InitiateLoginResult(authCode);
+    }
+
+    public void RemoveLoginAttempt(string hashedAuthCode, string hashedCodeVerifier)
+    {
+        var loginAttempt = LoginAttempts
+            .FirstOrDefault(la =>
+                la.AuthCode == hashedAuthCode &&
+                la.CodeChallenge == hashedCodeVerifier);
+
+        if (loginAttempt == default)
+        {
+            throw new DomainException(DomainExceptionMessages.LoginAttemptNotFound);
+        }
+
+        LoginAttempts.Remove(loginAttempt);
+    }
+
+    public void AddSession(string refreshTokenHash, string ipAddress)
+    {
+        Sessions.Add(Session.Create(refreshTokenHash, ipAddress));
     }
 }

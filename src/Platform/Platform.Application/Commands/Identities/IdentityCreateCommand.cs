@@ -51,7 +51,7 @@ internal class IdentityCreateCommandHandler : IRequestHandler<IdentityCreateComm
         CancellationToken cancellationToken)
     {
         var existingIdentity = await _identityRepository
-            .FirstOrDefaultAsync(command.Email, cancellationToken);
+            .FirstOrDefaultByEmailAsync(command.Email, cancellationToken);
 
         if (existingIdentity != default)
         {

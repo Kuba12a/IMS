@@ -7,16 +7,26 @@ namespace Platform.Infrastructure.Persistence.Repositories;
 internal class IdentityRepository : IIdentityRepository
 {
     private readonly WriteDbContext _writeDbContext;
-    private IQueryable<Identity> Identities => _writeDbContext.Identities;
+    private IQueryable<Identity> Identities => _writeDbContext.Identities
+        .Include(i => i.LoginAttempts)
+        .Include(i => i.Sessions);
 
     public IdentityRepository(WriteDbContext writeDbContext)
     {
         _writeDbContext = writeDbContext;
     }
 
-    public async Task<Identity?> FirstOrDefaultAsync(string email, CancellationToken cancellationToken = default)
+    public async Task<Identity?> FirstOrDefaultByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await Identities.FirstOrDefaultAsync(i => i.Email == email, cancellationToken);
+        return await Identities
+            .FirstOrDefaultAsync(i => i.Email == email, cancellationToken);
+    }
+    
+    public async Task<Identity?> FirstOrDefaultByAuthCodeAsync(string authCode, CancellationToken cancellationToken = default)
+    {
+        return await Identities
+            .FirstOrDefaultAsync(i => i.LoginAttempts.Any(la => la.AuthCode == authCode),
+                cancellationToken);
     }
 
     public async Task AddAsync(Identity entity, CancellationToken cancellationToken = default)
