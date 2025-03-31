@@ -1,8 +1,12 @@
-using Platform.Domain.Models.Identities;
+using Platform.Domain.Dtos;
 
 namespace Platform.Domain.DomainServices;
 
 public interface IIdentityDomainService
 {
-    Task<Identity> Login(string authCode, string codeVerifier, CancellationToken cancellationToken);
+    Task<LoginResult> Login(
+        string authCode,
+        string codeVerifier,
+        string ipAddress,
+        CancellationToken cancellationToken);
 }

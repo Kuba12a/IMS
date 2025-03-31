@@ -57,7 +57,7 @@ internal class IdentityInitiateLoginCommandHandler : IRequestHandler<IdentityIni
 
         if (identity == default)
         {
-            throw new AuthenticationException();
+            throw new AuthenticationException("Invalid credentials");
         }
 
         InitiateLoginResult initiateLoginResult;

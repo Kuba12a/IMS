@@ -65,7 +65,7 @@ public class Identity : IAggregate
         return new InitiateLoginResult(authCode);
     }
 
-    public void Login(string hashedAuthCode, string hashedCodeVerifier)
+    public void RemoveLoginAttempt(string hashedAuthCode, string hashedCodeVerifier)
     {
         var loginAttempt = LoginAttempts
             .FirstOrDefault(la =>
@@ -78,5 +78,10 @@ public class Identity : IAggregate
         }
 
         LoginAttempts.Remove(loginAttempt);
+    }
+
+    public void AddSession(string refreshTokenHash, string ipAddress)
+    {
+        Sessions.Add(Session.Create(refreshTokenHash, ipAddress));
     }
 }

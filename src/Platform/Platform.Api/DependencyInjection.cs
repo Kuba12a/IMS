@@ -107,6 +107,8 @@ public static class DependencyInjection
             {
                 infrastructureBuilder.AddModelWithPersistence(platformSettings.PostgresSettings);
             });
+        
+        services.AddHttpContextAccessor();
 
         return services;
     }

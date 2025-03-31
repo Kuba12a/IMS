@@ -3,11 +3,12 @@ using Common.Domain.Exceptions;
 using FluentValidation;
 using Platform.Application.InfrastructureInterfaces;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Platform.Application.Services.Auth;
 using Platform.Application.ViewModels;
 using Platform.Domain.Constants;
 using Platform.Domain.DomainServices;
-using Platform.Domain.Models.Identities;
+using Platform.Domain.Dtos;
 
 #pragma warning disable CS8620
 
@@ -41,23 +42,31 @@ internal class IdentityLoginCommandHandler : IRequestHandler<IdentityLoginComman
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIdentityDomainService _identityDomainService;
     private readonly ISecurityTokenService _securityTokenService;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public IdentityLoginCommandHandler(IUnitOfWork unitOfWork, IIdentityDomainService identityDomainService,
-        ISecurityTokenService securityTokenService)
+        ISecurityTokenService securityTokenService, IHttpContextAccessor httpContextAccessor)
     {
         _unitOfWork = unitOfWork;
         _identityDomainService = identityDomainService;
         _securityTokenService = securityTokenService;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<IdentityLoginViewModel> Handle(IdentityLoginCommand command,
         CancellationToken cancellationToken)
     {
-        Identity identity;
+        var ipAddress = _httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
+        
+        LoginResult loginResult;
         try
         {
-            identity = await _identityDomainService
-                .Login(command.AuthCode, command.CodeVerifier, cancellationToken);
+            loginResult = await _identityDomainService
+                .Login(
+                    command.AuthCode,
+                    command.CodeVerifier,
+                    ipAddress,
+                    cancellationToken);
         }
         catch (DomainException exception)
         {
@@ -69,13 +78,9 @@ internal class IdentityLoginCommandHandler : IRequestHandler<IdentityLoginComman
                 _ => new LogicException(exception.Message)
             };
         }
-
-        var idToken = _securityTokenService.CreateIdToken(identity.Id);
-        var accessToken = _securityTokenService.CreateAccessToken(identity.Id);
-        var refreshToken = _securityTokenService.CreateRefreshToken(identity.Id);
         
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         
-        return new IdentityLoginViewModel(idToken, accessToken, refreshToken);
+        return new IdentityLoginViewModel(loginResult.IdToken, loginResult.AccessToken, loginResult.RefreshToken);
     }
 }
