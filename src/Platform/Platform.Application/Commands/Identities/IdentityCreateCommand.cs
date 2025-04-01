@@ -40,11 +40,14 @@ internal class IdentityCreateCommandHandler : IRequestHandler<IdentityCreateComm
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIdentityRepository _identityRepository;
+    private readonly IEmailGateway _emailGateway;
 
-    public IdentityCreateCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository)
+    public IdentityCreateCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository,
+        IEmailGateway emailGateway)
     {
         _unitOfWork = unitOfWork;
         _identityRepository = identityRepository;
+        _emailGateway = emailGateway;
     }
 
     public async Task<SuccessResultViewModel> Handle(IdentityCreateCommand command,
@@ -58,11 +61,22 @@ internal class IdentityCreateCommandHandler : IRequestHandler<IdentityCreateComm
             throw new LogicException("Identity with given email already exists");
         }
 
-        var identity = Identity.Create(command.Email, command.Password);
+        var identityCreateResult = Identity.Create(command.Email, command.Password);
         
-        await _identityRepository.AddAsync(identity, cancellationToken);
+        await _identityRepository.AddAsync(identityCreateResult.Identity, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+        await SendWelcomeEmail(identityCreateResult.Identity.Email, identityCreateResult.ConfirmationToken,
+            cancellationToken);
+        
         return new SuccessResultViewModel(true);
+    }
+
+    private async Task SendWelcomeEmail(string sendTo, string confirmationToken, CancellationToken cancellationToken)
+    {
+        await _emailGateway.SendEmailAsync("Welcome",
+            $"Please confirm your account: {confirmationToken}",
+            sendTo,
+            cancellationToken);
     }
 }

@@ -36,4 +36,11 @@ public class IdentityController : ControllerBase
     {
         return _mediator.Send(command, cancellationToken);
     }
+    
+    [HttpPost("confirm-account")]
+    public Task<SuccessResultViewModel> ConfirmAccountAsync(IdentityConfirmEmailCommand command,
+        CancellationToken cancellationToken)
+    {
+        return _mediator.Send(command, cancellationToken);
+    }
 }

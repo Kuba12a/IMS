@@ -28,6 +28,13 @@ internal class IdentityRepository : IIdentityRepository
             .FirstOrDefaultAsync(i => i.LoginAttempts.Any(la => la.AuthCode == authCode),
                 cancellationToken);
     }
+    
+    public async Task<Identity?> FirstOrDefaultByConfirmationTokenHashAsync(string confirmationTokenHash,
+        CancellationToken cancellationToken = default)
+    {
+        return await Identities
+            .FirstOrDefaultAsync(i => i.EmailConfirmationTokenHash == confirmationTokenHash, cancellationToken);
+    }
 
     public async Task AddAsync(Identity entity, CancellationToken cancellationToken = default)
     {
