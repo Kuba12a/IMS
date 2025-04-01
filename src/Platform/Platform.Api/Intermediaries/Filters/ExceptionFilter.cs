@@ -1,6 +1,6 @@
 using System.Text;
 using Common.Application.Exceptions;
-using Microsoft.AspNetCore.Mvc;
+using Common.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Platform.Api.Intermediaries.Utils;
 using Serilog;
@@ -30,6 +30,24 @@ public class ExceptionFilter : IExceptionFilter
             })
             {
                 StatusCode = 400,
+                ExceptionLogType = ExceptionLogType.Default
+            },
+            DomainException e => new ObjectResultWrapper(new
+            {
+                Type = "logic",
+                e.Message,
+            })
+            {
+                StatusCode = 400,
+                ExceptionLogType = ExceptionLogType.Default
+            },
+            NotFoundException e => new ObjectResultWrapper(new
+            {
+                Type = "not_found",
+                e.Message,
+            })
+            {
+                StatusCode = 404,
                 ExceptionLogType = ExceptionLogType.Default
             },
             AuthenticationException e => new ObjectResultWrapper(new

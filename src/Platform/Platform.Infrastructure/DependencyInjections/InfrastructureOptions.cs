@@ -12,6 +12,7 @@ namespace Platform.Infrastructure.DependencyInjections;
 
 public interface IInfrastructureOptions
 {
+    void AddGateways(Action<IGatewaysOptions> builder);
     void AddModelWithPersistence(PostgresSettings postgresSettings);
 }
 
@@ -47,6 +48,12 @@ internal class InfrastructureOptions : IInfrastructureOptions
 
         AddRepositories();
         AddDomainServices();
+    }
+    
+    public void AddGateways(Action<IGatewaysOptions> builder)
+    {
+        var options = new GatewaysOptions(_services);
+        builder(options);
     }
 
     private void AddRepositories()

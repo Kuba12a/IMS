@@ -21,12 +21,12 @@ public class Identity : IAggregate
     public DateTimeOffset? EmailConfirmationTokenValidTo { get; private set; }
     public List<LoginAttempt> LoginAttempts { get; private init; }
     public List<Session> Sessions { get; private init; }
-    public static Identity Create(string email, string password)
+    public static IdentityCreateResult Create(string email, string password)
     {
         var emailConfirmationToken = AlphanumericRandomStringGenerator
             .GenerateAlphanumericToken(DomainConstants.EmailConfirmationTokenLength);
 
-        return new Identity
+        return new IdentityCreateResult(new Identity
         {
             Id = Guid.NewGuid(),
             Email = email.ToLower(),
@@ -38,7 +38,7 @@ public class Identity : IAggregate
             EmailConfirmationTokenValidTo = Clock.Now + DomainConstants.EmailConfirmationTokenDuration,
             LoginAttempts = [],
             Sessions = []
-        };
+        }, emailConfirmationToken);
     }
     
     public InitiateLoginResult InitiateLogin(string password, string codeChallenge)
@@ -83,5 +83,27 @@ public class Identity : IAggregate
     public void AddSession(string refreshTokenHash, string ipAddress)
     {
         Sessions.Add(Session.Create(refreshTokenHash, ipAddress));
+    }
+
+    public void ConfirmEmail(string tokenHash)
+    {
+        if (EmailConfirmationTokenHash != tokenHash)
+        {
+            throw new DomainException(DomainExceptionMessages.InvalidConfirmationToken);
+        }
+        
+        if (EmailConfirmationTokenValidTo < Clock.Now)
+        {
+            throw new DomainException(DomainExceptionMessages.ConfirmationTokenExpired);
+        }
+
+        if (EmailConfirmed)
+        {
+            throw new DomainException(DomainExceptionMessages.EmailAlreadyConfirmed);
+        }
+
+        EmailConfirmed = true;
+        EmailConfirmationTokenHash = null;
+        EmailConfirmationTokenValidTo = null;
     }
 }

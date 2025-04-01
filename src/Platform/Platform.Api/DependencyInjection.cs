@@ -106,6 +106,10 @@ public static class DependencyInjection
             .AddInfrastructure(infrastructureBuilder =>
             {
                 infrastructureBuilder.AddModelWithPersistence(platformSettings.PostgresSettings);
+                infrastructureBuilder.AddGateways(gatewaysBuilder =>
+                {
+                    gatewaysBuilder.AddSmtpGateway(platformSettings.SmtpSettings);
+                });
             });
         
         services.AddHttpContextAccessor();
