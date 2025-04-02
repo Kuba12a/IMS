@@ -35,6 +35,13 @@ internal class IdentityRepository : IIdentityRepository
         return await Identities
             .FirstOrDefaultAsync(i => i.EmailConfirmationTokenHash == confirmationTokenHash, cancellationToken);
     }
+    
+    public async Task<Identity?> FirstOrDefaultByResetPasswordTokenHashAsync(string resetPasswordTokenHash,
+        CancellationToken cancellationToken = default)
+    {
+        return await Identities
+            .FirstOrDefaultAsync(i => i.PasswordResetTokenHash == resetPasswordTokenHash, cancellationToken);
+    }
 
     public async Task AddAsync(Identity entity, CancellationToken cancellationToken = default)
     {

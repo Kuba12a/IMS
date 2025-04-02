@@ -43,4 +43,18 @@ public class IdentityController : ControllerBase
     {
         return _mediator.Send(command, cancellationToken);
     }
+    
+    [HttpPost("request-password-reset")]
+    public Task<SuccessResultViewModel> RequestPasswordResetAsync(IdentityRequestPasswordResetCommand command,
+        CancellationToken cancellationToken)
+    {
+        return _mediator.Send(command, cancellationToken);
+    }
+    
+    [HttpPost("reset-password")]
+    public Task<SuccessResultViewModel> ResetPasswordAsync(IdentityResetPasswordCommand command,
+        CancellationToken cancellationToken)
+    {
+        return _mediator.Send(command, cancellationToken);
+    }
 }
