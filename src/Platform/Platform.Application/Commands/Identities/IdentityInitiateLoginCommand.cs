@@ -65,7 +65,6 @@ internal class IdentityInitiateLoginCommandHandler : IRequestHandler<IdentityIni
         try
         {
             initiateLoginResult = identity.InitiateLogin(command.Password, command.CodeChallenge);
-
         }
         catch (DomainException exception)
         {

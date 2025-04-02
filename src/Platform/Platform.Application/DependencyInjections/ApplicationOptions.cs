@@ -4,13 +4,14 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Platform.Application.Common.Behavior;
 using Platform.Application.Services.Auth;
+using Platform.Application.Services.UrlBuilder;
 
 namespace Platform.Application.DependencyInjections;
 
 public interface IApplicationOptions
 {
     void AddCommandsAndQueries();
-    void AddServices(SecurityTokenSettings securityTokenSettings);
+    void AddServices(SecurityTokenSettings securityTokenSettings, UrlBuilderSettings urlBuilderSettings);
 }
 
 internal class ApplicationOptions : IApplicationOptions
@@ -31,10 +32,12 @@ internal class ApplicationOptions : IApplicationOptions
         _services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
     }
     
-    public void AddServices(SecurityTokenSettings securityTokenSettings)
+    public void AddServices(SecurityTokenSettings securityTokenSettings, UrlBuilderSettings urlBuilderSettings)
     {
         _services.AddSingleton(securityTokenSettings);
         
         _services.AddSingleton<ISecurityTokenService, SecurityTokenService>();
+
+        _services.AddSingleton<IUrlBuilderService>(_ => new UrlBuilderService(urlBuilderSettings));
     }
 }

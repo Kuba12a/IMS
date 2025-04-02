@@ -1,4 +1,4 @@
-namespace Platform.Application.Constants;
+namespace Common.Types.Enums;
 
 public enum SecurityTokenType
 {

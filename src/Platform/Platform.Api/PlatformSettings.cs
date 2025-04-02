@@ -1,6 +1,7 @@
 using Common.Types.Settings;
 using FluentValidation;
 using Platform.Application.Services.Auth;
+using Platform.Application.Services.UrlBuilder;
 using Platform.Infrastructure.Gateways.Smtp;
 
 namespace Platform.Api;
@@ -12,6 +13,7 @@ public class PlatformSettingsValidator : AbstractValidator<PlatformSettings>
         RuleFor(settings => settings.PostgresSettings).NotNull();
         RuleFor(settings => settings.SecurityTokenSettings).NotNull();
         RuleFor(settings => settings.SmtpSettings).NotNull();
+        RuleFor(settings => settings.UrlBuilderSettings).NotNull();
     }
 }
 
@@ -20,6 +22,7 @@ public class PlatformSettings : IValidatable
     public PostgresSettings PostgresSettings { get; set; }
     public SecurityTokenSettings SecurityTokenSettings { get; set; }
     public SmtpSettings SmtpSettings { get; set; }
+    public UrlBuilderSettings UrlBuilderSettings { get; set; }
 
     public void Validate()
     {
@@ -27,5 +30,6 @@ public class PlatformSettings : IValidatable
         PostgresSettings.Validate();
         SecurityTokenSettings.Validate();
         SmtpSettings.Validate();
+        UrlBuilderSettings.Validate();
     }
 }
