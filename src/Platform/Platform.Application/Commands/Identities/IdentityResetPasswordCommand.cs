@@ -12,49 +12,52 @@ using Platform.Application.ViewModels;
 
 namespace Platform.Application.Commands.Identities;
 
-public class IdentityConfirmEmailCommandValidator : AbstractValidator<IdentityConfirmEmailCommand>
+public class IdentityResetPasswordCommandValidator : AbstractValidator<IdentityResetPasswordCommand>
 {
-    public IdentityConfirmEmailCommandValidator()
+    public IdentityResetPasswordCommandValidator()
     {
         RuleFor(command => command.Token).NotEmpty();
+        RuleFor(command => command.NewPassword).NotEmpty();
     }
 }
 
-public class IdentityConfirmEmailCommand : IRequest<SuccessResultViewModel>
+public class IdentityResetPasswordCommand : IRequest<SuccessResultViewModel>
 {
     public string Token { get; }
+    public string NewPassword { get; }
     
-    public IdentityConfirmEmailCommand(string token)
+    public IdentityResetPasswordCommand(string token, string newPassword)
     {
         Token = token;
+        NewPassword = newPassword;
     }
 }
 
-internal class IdentityConfirmEmailCommandHandler : IRequestHandler<IdentityConfirmEmailCommand, SuccessResultViewModel>
+internal class IdentityResetPasswordCommandHandler : IRequestHandler<IdentityResetPasswordCommand, SuccessResultViewModel>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIdentityRepository _identityRepository;
 
-    public IdentityConfirmEmailCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository)
+    public IdentityResetPasswordCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository)
     {
         _unitOfWork = unitOfWork;
         _identityRepository = identityRepository;
     }
 
-    public async Task<SuccessResultViewModel> Handle(IdentityConfirmEmailCommand command,
+    public async Task<SuccessResultViewModel> Handle(IdentityResetPasswordCommand command,
         CancellationToken cancellationToken)
     {
         var tokenHash = StringHasher.Hash(command.Token);
 
         var identity = await _identityRepository
-            .FirstOrDefaultByConfirmationTokenHashAsync(tokenHash, cancellationToken);
+            .FirstOrDefaultByResetPasswordTokenHashAsync(tokenHash, cancellationToken);
 
         if (identity == default)
         {
-            throw new LogicException("Invalid confirmation token");
+            throw new LogicException("Invalid reset password token");
         }
 
-        identity.ConfirmEmail();
+        identity.ResetPassword(command.NewPassword);
         
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

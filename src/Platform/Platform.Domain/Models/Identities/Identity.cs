@@ -85,16 +85,35 @@ public class Identity : IAggregate
         Sessions.Add(Session.Create(refreshTokenHash, ipAddress));
     }
 
-    public void ConfirmEmail(string tokenHash)
+    public IdentityRequestPasswordResetResult RequestPasswordReset()
     {
-        if (EmailConfirmationTokenHash != tokenHash)
+        var token = AlphanumericRandomStringGenerator.GenerateAlphanumericToken();
+
+        var tokenHash = StringHasher.Hash(token);
+
+        PasswordResetTokenHash = tokenHash;
+        PasswordResetTokenValidTo = Clock.Now + DomainConstants.PasswordResetTokenDuration;
+
+        return new IdentityRequestPasswordResetResult(token);
+    }
+
+    public void ResetPassword(string newPassword)
+    {
+        if (PasswordResetTokenValidTo < Clock.Now)
         {
-            throw new DomainException(DomainExceptionMessages.InvalidConfirmationToken);
+            throw new DomainException(DomainExceptionMessages.TokenExpired);
         }
         
+        PasswordHash = PasswordHasher.Hash(newPassword);
+        PasswordResetTokenHash =  null;
+        PasswordResetTokenValidTo = null;
+    }
+
+    public void ConfirmEmail()
+    {
         if (EmailConfirmationTokenValidTo < Clock.Now)
         {
-            throw new DomainException(DomainExceptionMessages.ConfirmationTokenExpired);
+            throw new DomainException(DomainExceptionMessages.TokenExpired);
         }
 
         if (EmailConfirmed)
