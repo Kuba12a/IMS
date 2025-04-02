@@ -4,6 +4,7 @@ using Platform.Application.InfrastructureInterfaces;
 using Platform.Domain.Models.Identities;
 using Platform.Domain.Repositories;
 using MediatR;
+using Platform.Application.Services.UrlBuilder;
 using Platform.Application.ViewModels;
 
 #pragma warning disable CS8620
@@ -41,13 +42,15 @@ internal class IdentityCreateCommandHandler : IRequestHandler<IdentityCreateComm
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIdentityRepository _identityRepository;
     private readonly IEmailGateway _emailGateway;
+    private readonly IUrlBuilderService _urlBuilderService;
 
     public IdentityCreateCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository,
-        IEmailGateway emailGateway)
+        IEmailGateway emailGateway, IUrlBuilderService urlBuilderService)
     {
         _unitOfWork = unitOfWork;
         _identityRepository = identityRepository;
         _emailGateway = emailGateway;
+        _urlBuilderService = urlBuilderService;
     }
 
     public async Task<SuccessResultViewModel> Handle(IdentityCreateCommand command,
@@ -74,8 +77,10 @@ internal class IdentityCreateCommandHandler : IRequestHandler<IdentityCreateComm
 
     private async Task SendWelcomeEmail(string sendTo, string confirmationToken, CancellationToken cancellationToken)
     {
+        var confirmAccountUrl = _urlBuilderService.BuildAccountConfirmationUrl(confirmationToken);
+        
         await _emailGateway.SendEmailAsync("Welcome",
-            $"Please confirm your account: {confirmationToken}",
+            $"Please confirm your account: {confirmAccountUrl}",
             sendTo,
             cancellationToken);
     }

@@ -101,7 +101,7 @@ public static class DependencyInjection
             .AddApplication(applicationBuilder =>
             {
                 applicationBuilder.AddCommandsAndQueries();
-                applicationBuilder.AddServices(platformSettings.SecurityTokenSettings);
+                applicationBuilder.AddServices(platformSettings.SecurityTokenSettings, platformSettings.UrlBuilderSettings);
             })
             .AddInfrastructure(infrastructureBuilder =>
             {

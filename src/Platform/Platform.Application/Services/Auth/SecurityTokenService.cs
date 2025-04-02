@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Common.Types.Enums;
 using Common.Utils;
+using Common.Utils.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using Platform.Application.Constants;
 using Serilog;
@@ -13,6 +15,7 @@ public interface ISecurityTokenService
     string CreateAccessToken(Guid identityId);
     string CreateIdToken(Guid identityId);
     string CreateRefreshToken(Guid identityId);
+    TokenContext? GetTokenContext(string token);
 }
 
 public class SecurityTokenService : ISecurityTokenService
@@ -94,6 +97,30 @@ public class SecurityTokenService : ISecurityTokenService
         var token = tokenHandler.CreateToken(tokenDescriptor);
 
         return tokenHandler.WriteToken(token);
+    }
+    
+    public TokenContext? GetTokenContext(string token)
+    {
+        var principal = ReadAndValidateToken(token);
+
+        if (principal == null 
+            || !principal.Claims.TryGetGuid(AuthConstants.IdentifierClaim, out var identityId)
+            || !principal.Claims.TryGetLong(AuthConstants.ExpirationClaim, out var expSeconds)
+            || !principal.Claims.TryGetTokenType(AuthConstants.TokenTypeClaim, out var tokenType))
+        {
+            return null;
+        }
+
+        var expirationTime = DateTimeOffset.FromUnixTimeSeconds(expSeconds).DateTime;
+
+        return tokenType switch
+        {
+            SecurityTokenType.AccessToken => 
+                new AccessTokenContext(identityId, expirationTime),
+            SecurityTokenType.IdToken =>
+                new IdTokenContext(identityId, expirationTime),
+            _ => null
+        };
     }
     
     private ClaimsPrincipal? ReadAndValidateToken(string token)

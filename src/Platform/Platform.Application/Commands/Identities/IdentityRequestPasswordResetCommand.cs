@@ -2,6 +2,7 @@ using FluentValidation;
 using Platform.Application.InfrastructureInterfaces;
 using Platform.Domain.Repositories;
 using MediatR;
+using Platform.Application.Services.UrlBuilder;
 using Platform.Application.ViewModels;
 
 #pragma warning disable CS8620
@@ -33,13 +34,15 @@ internal class IdentityRequestPasswordResetCommandHandler : IRequestHandler<Iden
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIdentityRepository _identityRepository;
     private readonly IEmailGateway _emailGateway;
+    private readonly IUrlBuilderService _urlBuilderService;
 
     public IdentityRequestPasswordResetCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository,
-        IEmailGateway emailGateway)
+        IEmailGateway emailGateway, IUrlBuilderService urlBuilderService)
     {
         _unitOfWork = unitOfWork;
         _identityRepository = identityRepository;
         _emailGateway = emailGateway;
+        _urlBuilderService = urlBuilderService;
     }
 
     public async Task<SuccessResultViewModel> Handle(IdentityRequestPasswordResetCommand command,
@@ -65,8 +68,10 @@ internal class IdentityRequestPasswordResetCommandHandler : IRequestHandler<Iden
 
     private async Task SendPasswordResetEmail(string sendTo, string passwordResetToken, CancellationToken cancellationToken)
     {
+        var resetPasswordUrl = _urlBuilderService.BuildPasswordResetUrl(passwordResetToken);
+        
         await _emailGateway.SendEmailAsync("Password Reset",
-            $"Reset your password: {passwordResetToken}",
+            $"Reset your password: {resetPasswordUrl}",
             sendTo,
             cancellationToken);
     }
