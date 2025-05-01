@@ -30,6 +30,13 @@ public class IdentityController : ControllerBase
         return _mediator.Send(command, cancellationToken);
     }
     
+    [HttpPost("confirm-two-factor-email-code")]
+    public Task<IdentityConfirmTwoFactorEmailCodeResultViewModel> ConfirmEmailCodeAsync(IdentityConfirmTwoFactorEmailCodeCommand command,
+        CancellationToken cancellationToken)
+    {
+        return _mediator.Send(command, cancellationToken);
+    }
+    
     [HttpPost("login")]
     public Task<IdentityLoginViewModel> LoginAsync(IdentityLoginCommand command,
         CancellationToken cancellationToken)

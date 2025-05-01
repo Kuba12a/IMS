@@ -9,6 +9,9 @@ internal class IdentityRepository : IIdentityRepository
     private readonly WriteDbContext _writeDbContext;
     private IQueryable<Identity> Identities => _writeDbContext.Identities
         .Include(i => i.LoginAttempts)
+        .ThenInclude(la => la.AuthCodeChallenge)
+        .Include(i => i.LoginAttempts)
+        .ThenInclude(la => la.TwoFactorEmailAuthenticationChallenge)
         .Include(i => i.Sessions);
 
     public IdentityRepository(WriteDbContext writeDbContext)
@@ -22,10 +25,21 @@ internal class IdentityRepository : IIdentityRepository
             .FirstOrDefaultAsync(i => i.Email == email, cancellationToken);
     }
     
-    public async Task<Identity?> FirstOrDefaultByAuthCodeAsync(string authCode, CancellationToken cancellationToken = default)
+    public async Task<Identity?> FirstOrDefaultByAuthCodeHashAsync(string authCodeHash, CancellationToken cancellationToken = default)
     {
         return await Identities
-            .FirstOrDefaultAsync(i => i.LoginAttempts.Any(la => la.AuthCode == authCode),
+            .FirstOrDefaultAsync(i => i.LoginAttempts.Any(la => la.AuthCodeChallenge != null
+                                                                && la.AuthCodeChallenge.HashedCode == authCodeHash),
+                cancellationToken);
+    }
+    
+    public async Task<Identity?> FirstOrDefaultBySessionTokenHashAsync(string sessionTokenHash,
+        CancellationToken cancellationToken = default)
+    {
+        return await Identities
+            .FirstOrDefaultAsync(i => i.LoginAttempts
+                    .Any(la =>  la.TwoFactorEmailAuthenticationChallenge != null 
+                                && la.TwoFactorEmailAuthenticationChallenge.SessionTokenHash == sessionTokenHash),
                 cancellationToken);
     }
     
@@ -42,7 +56,7 @@ internal class IdentityRepository : IIdentityRepository
         return await Identities
             .FirstOrDefaultAsync(i => i.PasswordResetTokenHash == resetPasswordTokenHash, cancellationToken);
     }
-
+    
     public async Task AddAsync(Identity entity, CancellationToken cancellationToken = default)
     {
         await _writeDbContext.Identities.AddAsync(entity, cancellationToken);

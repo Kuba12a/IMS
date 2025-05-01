@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Platform.Application.Common.Behavior;
 using Platform.Application.Services.Auth;
+using Platform.Application.Services.Cookies;
 
 namespace Platform.Application.DependencyInjections;
 
@@ -36,5 +37,7 @@ internal class ApplicationOptions : IApplicationOptions
         _services.AddSingleton(securityTokenSettings);
         
         _services.AddSingleton<ISecurityTokenService, SecurityTokenService>();
+        
+        _services.AddScoped<ICookieService, CookieService>();
     }
 }
