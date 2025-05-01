@@ -26,7 +26,7 @@ public class IdentityDomainService : IIdentityDomainService
         var hashedCodeVerifier = StringHasher.Hash(codeVerifier);
 
         var identity = await _identityRepository
-            .FirstOrDefaultByAuthCodeAsync(hashedAuthCode, cancellationToken);
+            .FirstOrDefaultByAuthCodeHashAsync(hashedAuthCode, cancellationToken);
 
         if (identity == null)
         {

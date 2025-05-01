@@ -4,9 +4,12 @@ using FluentValidation;
 using Platform.Application.InfrastructureInterfaces;
 using Platform.Domain.Repositories;
 using MediatR;
+using Platform.Application.Constants;
+using Platform.Application.Services.Cookies;
 using Platform.Application.ViewModels;
 using Platform.Domain.Constants;
 using Platform.Domain.Dtos;
+using Platform.Domain.Models.Identities;
 
 #pragma warning disable CS8620
 
@@ -42,11 +45,16 @@ internal class IdentityInitiateLoginCommandHandler : IRequestHandler<IdentityIni
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIdentityRepository _identityRepository;
+    private readonly IEmailGateway _emailGateway;
+    private readonly ICookieService _cookieService;
 
-    public IdentityInitiateLoginCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository)
+    public IdentityInitiateLoginCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository,
+        IEmailGateway emailGateway, ICookieService cookieService)
     {
         _unitOfWork = unitOfWork;
         _identityRepository = identityRepository;
+        _emailGateway = emailGateway;
+        _cookieService = cookieService;
     }
 
     public async Task<IdentityInitiateLoginViewModel> Handle(IdentityInitiateLoginCommand command,
@@ -60,7 +68,7 @@ internal class IdentityInitiateLoginCommandHandler : IRequestHandler<IdentityIni
             throw new AuthenticationException("Invalid credentials");
         }
 
-        InitiateLoginResult initiateLoginResult;
+        IdentityInitiateLoginResult initiateLoginResult;
         
         try
         {
@@ -78,7 +86,37 @@ internal class IdentityInitiateLoginCommandHandler : IRequestHandler<IdentityIni
         }
         
         await _unitOfWork.SaveChangesAsync(cancellationToken);
-        
-        return new IdentityInitiateLoginViewModel(initiateLoginResult.AuthCode);
+
+        return await HandleInitiateLoginAsync(initiateLoginResult, identity, cancellationToken);
+    }
+
+    private async Task<IdentityInitiateLoginViewModel> HandleInitiateLoginAsync(
+        IdentityInitiateLoginResult identityInitiateLoginResult,
+        Identity identity,
+        CancellationToken cancellationToken)
+    {
+        switch (identityInitiateLoginResult)
+        {
+            case IdentityInitiateLoginWithEmailCodeResult result :
+                await SendTwoFactorCodeEmail(identity.Email, result.EmailCode, cancellationToken);
+                
+                _cookieService.SetCookie(AuthConstants.TwoFactorSessionCookieName, result.SessionToken, result.ExpiresAt);
+                
+                return new IdentityInitiateLoginWithEmailCodeViewModel();
+            
+            case IdentityInitiateLoginWithoutTwoFactorAuthResult result :
+                return new IdentityInitiateLoginWithoutTwoFactorAuthViewModel(result.AuthCode);
+            
+            default:
+                throw new Exception("Login method not supported");
+        }
+    }
+    
+    private async Task SendTwoFactorCodeEmail(string sendTo, string emailCode, CancellationToken cancellationToken)
+    {
+        await _emailGateway.SendEmailAsync("Two Factor code",
+            $"Your 2fa code: {emailCode}",
+            sendTo,
+            cancellationToken);
     }
 }

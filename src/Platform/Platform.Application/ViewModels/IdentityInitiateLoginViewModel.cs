@@ -1,3 +1,3 @@
 namespace Platform.Application.ViewModels;
 
-public sealed record IdentityInitiateLoginViewModel(string AuthCode);
+public record IdentityInitiateLoginViewModel(bool MfaRequired);
