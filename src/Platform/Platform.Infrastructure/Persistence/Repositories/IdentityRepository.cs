@@ -25,6 +25,12 @@ internal class IdentityRepository : IIdentityRepository
             .FirstOrDefaultAsync(i => i.Email == email, cancellationToken);
     }
     
+    public async Task<Identity?> FirstOrDefaultByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await Identities
+            .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
+    }
+    
     public async Task<Identity?> FirstOrDefaultByAuthCodeHashAsync(string authCodeHash, CancellationToken cancellationToken = default)
     {
         return await Identities

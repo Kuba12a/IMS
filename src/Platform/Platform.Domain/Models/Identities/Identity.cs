@@ -153,4 +153,9 @@ public class Identity : Entity, IAggregate
         EmailConfirmationTokenHash = null;
         EmailConfirmationTokenValidTo = null;
     }
+
+    public void SetMfaRequired(bool value)
+    {
+        RequireMfa = value;
+    }
 }

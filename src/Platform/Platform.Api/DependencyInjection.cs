@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Platform.Api.Intermediaries.Filters;
+using Platform.Api.Intermediaries.Middlewares;
 using Platform.Application.DependencyInjections;
 using Platform.Application.Services.Auth;
 using Platform.Infrastructure.DependencyInjections;
@@ -19,36 +20,61 @@ public static class DependencyInjection
             .AddControllers(options =>
             {
                 options.Filters.Add(typeof(ExceptionFilter));
+                options.Filters.Add<AuthenticationContextAuthorizationFilter>();
             })
             .ConfigureApiBehaviorOptions(options => { options.SuppressModelStateInvalidFilter = true; });
         services.AddEndpointsApiExplorer();
         
-        services.AddSwagger();
+        services.AddSwaggerGen(c =>
+        {
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below."
+            });
 
-        // services.AddAuthentication(options =>
-        //     {
-        //         options.DefaultAuthenticateScheme = "Identities";
-        //         options.DefaultChallengeScheme = "Identities";
-        //     })
-        //     .AddJwtBearer("Identities", options =>
-        //     {
-        //         options.TokenValidationParameters = new TokenValidationParameters
-        //         {
-        //             ValidateIssuerSigningKey = true,
-        //             IssuerSigningKey = securityTokenSettings.GetTokenPublicKey(),
-        //             ValidateIssuer = false,
-        //             ValidateAudience = false,
-        //             ValidateLifetime = true,
-        //             ClockSkew = TimeSpan.Zero
-        //         };
-        //     });
-        //
-        // services.AddAuthorizationBuilder()
-        //             .AddPolicy("Identities", policy =>
-        //     {
-        //         policy.AddAuthenticationSchemes("Identities");
-        //         policy.RequireAuthenticatedUser();
-        //     });
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    new string[] { }
+                }
+            });
+        });
+
+        services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = "Identities";
+                options.DefaultChallengeScheme = "Identities";
+            })
+            .AddJwtBearer("Identities", options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = securityTokenSettings.GetTokenPublicKey(),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
+        
+        services.AddAuthorizationBuilder()
+                    .AddPolicy("Identities", policy =>
+            {
+                policy.AddAuthenticationSchemes("Identities");
+                policy.RequireAuthenticatedUser();
+            });
         
         return services;
     }

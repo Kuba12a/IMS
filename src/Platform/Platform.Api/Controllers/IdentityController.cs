@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Platform.Application.Commands.Identities;
 using Platform.Application.ViewModels;
@@ -60,6 +61,14 @@ public class IdentityController : ControllerBase
     
     [HttpPost("reset-password")]
     public Task<SuccessResultViewModel> ResetPasswordAsync(IdentityResetPasswordCommand command,
+        CancellationToken cancellationToken)
+    {
+        return _mediator.Send(command, cancellationToken);
+    }
+    
+    [Authorize(Policy = "Identities")]
+    [HttpPost("set-mfa-required")]
+    public Task<SuccessResultViewModel> SetMfaRequiredAsync(IdentitySetMfaRequiredCommand command,
         CancellationToken cancellationToken)
     {
         return _mediator.Send(command, cancellationToken);

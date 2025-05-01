@@ -59,6 +59,15 @@ public class ExceptionFilter : IExceptionFilter
                 StatusCode = 401,
                 ExceptionLogType = ExceptionLogType.Default
             },
+            AuthorizationException e => new ObjectResultWrapper(new
+            {
+                Type = "authorization",
+                e.Message,
+            })
+            {
+                StatusCode = 403,
+                ExceptionLogType = ExceptionLogType.Default
+            },
             // Unknown
             _ => new ObjectResultWrapper(new
             {

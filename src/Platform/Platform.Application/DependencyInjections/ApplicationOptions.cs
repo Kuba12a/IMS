@@ -38,6 +38,8 @@ internal class ApplicationOptions : IApplicationOptions
         
         _services.AddSingleton<ISecurityTokenService, SecurityTokenService>();
         
+        _services.AddScoped<IAuthenticationContextService, AuthenticationContextService>();
+        
         _services.AddScoped<ICookieService, CookieService>();
     }
 }
