@@ -6,7 +6,7 @@ public interface ICookieService
 {
     void SetCookie(string key, string value, DateTimeOffset expiresAt, CookieOptions? options = null);
     string? GetCookie(string key);
-    void DeleteCookie(string key);
+    void DeleteCookie(string key, CookieOptions? cookieOptions = null);
 }
 
 public class CookieService : ICookieService
@@ -42,11 +42,18 @@ public class CookieService : ICookieService
         return _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue(key, out var value) ? value : null;
     }
 
-    public void DeleteCookie(string key)
+    public void DeleteCookie(string key, CookieOptions? cookieOptions = null)
     {
         if (string.IsNullOrEmpty(key))
             throw new ArgumentNullException(nameof(key));
 
-        _httpContextAccessor.HttpContext.Response.Cookies.Delete(key);
+        if (cookieOptions != null)
+        {
+            _httpContextAccessor.HttpContext.Response.Cookies.Delete(key, cookieOptions);
+        }
+        else
+        {
+            _httpContextAccessor.HttpContext.Response.Cookies.Delete(key);
+        }
     }
 }

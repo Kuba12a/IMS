@@ -12,6 +12,7 @@ public class Identity : Entity, IAggregate
 {
     public Guid Id { get; private init; }
     public string Email { get; private init; }
+    public string Name { get; private set; }
     public string? PasswordHash { get; private set; }
     public DateTimeOffset CreatedAt { get; private init; }
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -23,7 +24,7 @@ public class Identity : Entity, IAggregate
     public List<LoginAttempt> LoginAttempts { get; private init; }
     public List<Session> Sessions { get; private init; }
     public bool RequireMfa { get; set; }
-    public static IdentityCreateResult Create(string email, string password)
+    public static IdentityCreateResult Create(string email, string name, string password)
     {
         var emailConfirmationToken = AlphanumericRandomStringGenerator
             .GenerateAlphanumericToken(DomainConstants.EmailConfirmationTokenLength);
@@ -32,6 +33,7 @@ public class Identity : Entity, IAggregate
         {
             Id = Guid.NewGuid(),
             Email = email.ToLower(),
+            Name = name,
             PasswordHash = PasswordHasher.Hash(password),
             CreatedAt = Clock.Now,
             UpdatedAt = Clock.Now,
@@ -107,11 +109,13 @@ public class Identity : Entity, IAggregate
         }
 
         LoginAttempts.Remove(loginAttempt);
+        UpdatedAt = Clock.Now;
     }
 
     public void AddSession(string refreshTokenHash, string ipAddress)
     {
         Sessions.Add(Session.Create(refreshTokenHash, ipAddress));
+        UpdatedAt = Clock.Now;
     }
 
     public IdentityRequestPasswordResetResult RequestPasswordReset()
@@ -122,6 +126,7 @@ public class Identity : Entity, IAggregate
 
         PasswordResetTokenHash = tokenHash;
         PasswordResetTokenValidTo = Clock.Now + DomainConstants.PasswordResetTokenDuration;
+        UpdatedAt = Clock.Now;
 
         return new IdentityRequestPasswordResetResult(token);
     }
@@ -136,6 +141,7 @@ public class Identity : Entity, IAggregate
         PasswordHash = PasswordHasher.Hash(newPassword);
         PasswordResetTokenHash =  null;
         PasswordResetTokenValidTo = null;
+        UpdatedAt = Clock.Now;
     }
 
     public void ConfirmEmail()
@@ -153,6 +159,7 @@ public class Identity : Entity, IAggregate
         EmailConfirmed = true;
         EmailConfirmationTokenHash = null;
         EmailConfirmationTokenValidTo = null;
+        UpdatedAt = Clock.Now;
     }
 
     public void RefreshSession(string refreshTokenHash, string ipAddress, string newRefreshTokenHash)
@@ -165,10 +172,46 @@ public class Identity : Entity, IAggregate
         }
         
         session.Refresh(newRefreshTokenHash);
+        
+        UpdatedAt = Clock.Now;
+    }
+    
+    public void RemoveSession(string refreshTokenHash)
+    {
+        var session = Sessions.FirstOrDefault(s => s.RefreshTokenHash == refreshTokenHash);
+
+        if (session == default)
+        {
+            throw new AuthorizationException();
+        }
+        
+        Sessions.Remove(session);
+        
+        UpdatedAt = Clock.Now;
     }
 
     public void SetMfaRequired(bool value)
     {
         RequireMfa = value;
+        
+        UpdatedAt = Clock.Now;
+    }
+
+    public void ChangePassword(string oldPassword, string newPassword)
+    {
+        if (PasswordHash == null || !PasswordHasher.Verify(oldPassword, PasswordHash))
+        {
+            throw new DomainException(DomainExceptionMessages.InvalidCredentials);
+        }
+
+        PasswordHash = PasswordHasher.Hash(newPassword);
+
+        UpdatedAt = Clock.Now;
+    }
+
+    public void SetName(string name)
+    {
+        Name = name;
+        UpdatedAt = Clock.Now;
     }
 }

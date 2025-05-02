@@ -4,11 +4,11 @@ public static class AuthConstants
 {
     public const string IdentityIdClaim = "identityId";
     public const string TokenTypeClaim = "type";
+    public const string IdentityNameClaim = "identityName";
 
     public const string TwoFactorSessionCookieName = "TFSCookie";
     
     public const string AccessTokenCookieName = "AccessToken";
     public const string RefreshTokenCookieName = "RefreshToken";
-    public const string IdTokenCookieName = "IdToken";
 
 }
