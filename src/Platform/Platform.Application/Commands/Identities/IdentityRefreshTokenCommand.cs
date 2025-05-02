@@ -75,7 +75,7 @@ internal class IdentityRefreshTokenCommandHandler : IRequestHandler<IdentityRefr
             throw new AuthorizationException();
         }
         
-        var idToken = _securityTokenService.CreateIdToken(identity.Id);
+        var idToken = _securityTokenService.CreateIdToken(identity.Id, identity.Name);
         var accessToken = _securityTokenService.CreateAccessToken(identity.Id);
         var newRefreshToken = _securityTokenService.CreateRefreshToken(identity.Id);
         
@@ -101,6 +101,16 @@ internal class IdentityRefreshTokenCommandHandler : IRequestHandler<IdentityRefr
                 SameSite = SameSiteMode.Strict,
                 Expires = newRefreshToken.ExpiresAt,
                 Path = "/Identity/refresh-token"
+            });
+        
+        _cookieService.SetCookie(AuthConstants.RefreshTokenCookieName, newRefreshToken.Value,
+            newRefreshToken.ExpiresAt, options: new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = newRefreshToken.ExpiresAt,
+                Path = "/Identity/logout"
             });
         
         return new IdentityTokensViewModel(idToken.Value);

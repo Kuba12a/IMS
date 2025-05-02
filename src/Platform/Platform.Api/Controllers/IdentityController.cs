@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Platform.Application.Commands.Identities;
+using Platform.Application.Queries;
 using Platform.Application.ViewModels;
 
 namespace Platform.Api.Controllers;
@@ -17,6 +18,7 @@ public class IdentityController : ControllerBase
         _mediator = mediator;
     }
     
+    //Commands
     [HttpPost("create")]
     public Task<SuccessResultViewModel> CreateAsync(IdentityCreateCommand command,
         CancellationToken cancellationToken)
@@ -79,5 +81,38 @@ public class IdentityController : ControllerBase
         CancellationToken cancellationToken)
     {
         return _mediator.Send(command, cancellationToken);
+    }
+    
+    [Authorize(Policy = "Identities")]
+    [HttpPost("change-password")]
+    public Task<SuccessResultViewModel> ChangePasswordAsync(IdentityChangePasswordCommand command,
+        CancellationToken cancellationToken)
+    {
+        return _mediator.Send(command, cancellationToken);
+    }
+    
+    [Authorize(Policy = "Identities")]
+    [HttpPost("set-name")]
+    public Task<SuccessResultViewModel> SetNameAsync(IdentitySetNameCommand command,
+        CancellationToken cancellationToken)
+    {
+        return _mediator.Send(command, cancellationToken);
+    }
+    
+    [Authorize(Policy = "Identities")]
+    [HttpPost("logout")]
+    public Task<SuccessResultViewModel> LogoutAsync(IdentityLogoutCommand command,
+        CancellationToken cancellationToken)
+    {
+        return _mediator.Send(command, cancellationToken);
+    }
+    
+    //Queries
+    [Authorize(Policy = "Identities")]
+    [HttpPost("get-my-details")]
+    public Task<IdentityDetailsViewModel> GetMyDetailsAsync(IdentityGetMyDetailsQuery query,
+        CancellationToken cancellationToken)
+    {
+        return _mediator.Send(query, cancellationToken);
     }
 }

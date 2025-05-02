@@ -61,7 +61,7 @@ internal class IdentityCreateCommandHandler : IRequestHandler<IdentityCreateComm
             throw new LogicException("Identity with given email already exists");
         }
 
-        var identityCreateResult = Identity.Create(command.Email, command.Password);
+        var identityCreateResult = Identity.Create(command.Email, command.Name, command.Password);
         
         await _identityRepository.AddAsync(identityCreateResult.Identity, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

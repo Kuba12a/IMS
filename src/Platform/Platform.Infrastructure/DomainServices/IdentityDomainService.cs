@@ -35,7 +35,7 @@ public class IdentityDomainService : IIdentityDomainService
         
         identity.RemoveLoginAttempt(hashedAuthCode, hashedCodeVerifier);
 
-        var idToken = _securityTokenService.CreateIdToken(identity.Id);
+        var idToken = _securityTokenService.CreateIdToken(identity.Id, identity.Name);
         var accessToken = _securityTokenService.CreateAccessToken(identity.Id);
         var refreshToken = _securityTokenService.CreateRefreshToken(identity.Id);
         

@@ -8,13 +8,11 @@ public static class StringHasher
     public static string Hash(string token)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(token));
-
-        var builder = new StringBuilder();
-        foreach (var b in bytes)
-        {
-            builder.Append(b.ToString("x2"));
-        }
-
-        return builder.ToString();
+    
+        var base64 = Convert.ToBase64String(bytes);
+        return base64
+            .Replace('+', '-')
+            .Replace('/', '_')
+            .TrimEnd('=');
     }
 }

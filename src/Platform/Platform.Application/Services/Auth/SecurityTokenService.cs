@@ -12,7 +12,7 @@ namespace Platform.Application.Services.Auth;
 public interface ISecurityTokenService
 {
     TokenResult CreateAccessToken(Guid identityId);
-    TokenResult CreateIdToken(Guid identityId);
+    TokenResult CreateIdToken(Guid identityId, string name);
     TokenResult CreateRefreshToken(Guid identityId);
 }
 
@@ -57,12 +57,13 @@ public class SecurityTokenService : ISecurityTokenService
         return new TokenResult(tokenValue, expiresAt);
     }
     
-    public TokenResult CreateIdToken(Guid identityId)
+    public TokenResult CreateIdToken(Guid identityId, string name)
     {
         var subject = new ClaimsIdentity(new[]
         {
             new Claim(AuthConstants.TokenTypeClaim, SecurityTokenType.IdToken.ToString()),
             new Claim(AuthConstants.IdentityIdClaim, identityId.ToString()),
+            new Claim(AuthConstants.IdentityNameClaim, name),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         });
 
