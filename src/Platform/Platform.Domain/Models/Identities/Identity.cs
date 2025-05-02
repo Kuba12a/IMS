@@ -1,3 +1,4 @@
+using Common.Application.Exceptions;
 using Common.Domain.Exceptions;
 using Common.Utils;
 using Common.Utils.Security;
@@ -152,6 +153,18 @@ public class Identity : Entity, IAggregate
         EmailConfirmed = true;
         EmailConfirmationTokenHash = null;
         EmailConfirmationTokenValidTo = null;
+    }
+
+    public void RefreshSession(string refreshTokenHash, string ipAddress, string newRefreshTokenHash)
+    {
+        var session = Sessions.FirstOrDefault(s => s.RefreshTokenHash == refreshTokenHash && s.IpAddress == ipAddress);
+
+        if (session == default)
+        {
+            throw new AuthorizationException();
+        }
+        
+        session.Refresh(newRefreshTokenHash);
     }
 
     public void SetMfaRequired(bool value)

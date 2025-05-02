@@ -14,4 +14,6 @@ public interface IIdentityRepository : IRepository<Identity>
         CancellationToken cancellationToken = default);
     Task<Identity?> FirstOrDefaultBySessionTokenHashAsync(string sessionTokenHash,
         CancellationToken cancellationToken = default);
+    Task<Identity?> FirstOrDefaultByRefreshTokenHashAsync(string refreshTokenHash,
+        CancellationToken cancellationToken = default);
 }

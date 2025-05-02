@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -58,6 +59,19 @@ public static class DependencyInjection
             })
             .AddJwtBearer("Identities", options =>
             {
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        if (context.Request.Cookies.TryGetValue("AccessToken", out var token))
+                        {
+                            context.Token = token;
+                        }
+            
+                        return Task.CompletedTask;
+                    }
+                };
+    
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -68,9 +82,9 @@ public static class DependencyInjection
                     ClockSkew = TimeSpan.Zero
                 };
             });
-        
+
         services.AddAuthorizationBuilder()
-                    .AddPolicy("Identities", policy =>
+            .AddPolicy("Identities", policy =>
             {
                 policy.AddAuthenticationSchemes("Identities");
                 policy.RequireAuthenticatedUser();

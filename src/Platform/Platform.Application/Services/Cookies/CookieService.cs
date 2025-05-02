@@ -28,7 +28,7 @@ public class CookieService : ICookieService
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Strict,
-            Expires = expiresAt
+            Expires = expiresAt,
         };
 
         _httpContextAccessor.HttpContext.Response.Cookies.Append(key, value, options);

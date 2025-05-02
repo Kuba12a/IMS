@@ -63,6 +63,13 @@ internal class IdentityRepository : IIdentityRepository
             .FirstOrDefaultAsync(i => i.PasswordResetTokenHash == resetPasswordTokenHash, cancellationToken);
     }
     
+    public async Task<Identity?> FirstOrDefaultByRefreshTokenHashAsync(string refreshTokenHash,
+        CancellationToken cancellationToken = default)
+    {
+        return await Identities
+            .FirstOrDefaultAsync(i => i.Sessions.Any(s => s.RefreshTokenHash == refreshTokenHash), cancellationToken);
+    }
+    
     public async Task AddAsync(Identity entity, CancellationToken cancellationToken = default)
     {
         await _writeDbContext.Identities.AddAsync(entity, cancellationToken);
