@@ -39,7 +39,7 @@ public class IdentityController : ControllerBase
     }
     
     [HttpPost("login")]
-    public Task<IdentityLoginViewModel> LoginAsync(IdentityLoginCommand command,
+    public Task<IdentityTokensViewModel> LoginAsync(IdentityLoginCommand command,
         CancellationToken cancellationToken)
     {
         return _mediator.Send(command, cancellationToken);
@@ -61,6 +61,13 @@ public class IdentityController : ControllerBase
     
     [HttpPost("reset-password")]
     public Task<SuccessResultViewModel> ResetPasswordAsync(IdentityResetPasswordCommand command,
+        CancellationToken cancellationToken)
+    {
+        return _mediator.Send(command, cancellationToken);
+    }
+    
+    [HttpPost("refresh-token")]
+    public Task<IdentityTokensViewModel> RefreshTokenAsync(IdentityRefreshTokenCommand command,
         CancellationToken cancellationToken)
     {
         return _mediator.Send(command, cancellationToken);

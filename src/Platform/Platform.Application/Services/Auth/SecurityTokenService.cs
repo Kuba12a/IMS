@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Common.Utils;
 using Microsoft.IdentityModel.Tokens;
 using Platform.Application.Constants;
+using Platform.Domain.Types;
 using Serilog;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
@@ -10,9 +11,9 @@ namespace Platform.Application.Services.Auth;
 
 public interface ISecurityTokenService
 {
-    string CreateAccessToken(Guid identityId);
-    string CreateIdToken(Guid identityId);
-    string CreateRefreshToken(Guid identityId);
+    TokenResult CreateAccessToken(Guid identityId);
+    TokenResult CreateIdToken(Guid identityId);
+    TokenResult CreateRefreshToken(Guid identityId);
 }
 
 public class SecurityTokenService : ISecurityTokenService
@@ -30,7 +31,7 @@ public class SecurityTokenService : ISecurityTokenService
         _publicKey = _securityTokenSettings.GetTokenPublicKey();
     }
 
-    public string CreateAccessToken(Guid identityId)
+    public TokenResult CreateAccessToken(Guid identityId)
     {
         var subject = new ClaimsIdentity(new[]
         {
@@ -39,20 +40,24 @@ public class SecurityTokenService : ISecurityTokenService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         });
 
+        var expiresAt = (Clock.Now + TimeSpan.FromSeconds(_securityTokenSettings.AccessTokenDurationInSeconds))
+            .UtcDateTime;
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = subject,
-            Expires = (Clock.Now + TimeSpan.FromSeconds(_securityTokenSettings.AccessTokenDurationInSeconds)).UtcDateTime,
+            Expires = expiresAt,
             SigningCredentials = new SigningCredentials(_privateKey, SecurityAlgorithms.RsaSha256)
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
 
-        return tokenHandler.WriteToken(token);
+        var tokenValue = tokenHandler.WriteToken(token);
+        return new TokenResult(tokenValue, expiresAt);
     }
     
-    public string CreateIdToken(Guid identityId)
+    public TokenResult CreateIdToken(Guid identityId)
     {
         var subject = new ClaimsIdentity(new[]
         {
@@ -61,20 +66,24 @@ public class SecurityTokenService : ISecurityTokenService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         });
 
+        var expiresAt = (Clock.Now + TimeSpan.FromSeconds(_securityTokenSettings.IdTokenDurationInSeconds))
+            .UtcDateTime;
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = subject,
-            Expires = (Clock.Now + TimeSpan.FromSeconds(_securityTokenSettings.IdTokenDurationInSeconds)).UtcDateTime,
+            Expires = expiresAt,
             SigningCredentials = new SigningCredentials(_privateKey, SecurityAlgorithms.RsaSha256)
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
 
-        return tokenHandler.WriteToken(token);
+        var tokenValue = tokenHandler.WriteToken(token);
+        return new TokenResult(tokenValue, expiresAt);
     }
 
-    public string CreateRefreshToken(Guid identityId)
+    public TokenResult CreateRefreshToken(Guid identityId)
     {
         var subject = new ClaimsIdentity(new[]
         {
@@ -82,6 +91,9 @@ public class SecurityTokenService : ISecurityTokenService
             new Claim(AuthConstants.IdentityIdClaim, identityId.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         });
+
+        var expiresAt = (Clock.Now + TimeSpan.FromSeconds(_securityTokenSettings.RefreshTokenDurationInSeconds))
+            .UtcDateTime;
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -93,7 +105,8 @@ public class SecurityTokenService : ISecurityTokenService
         var tokenHandler = new JwtSecurityTokenHandler();
         var token = tokenHandler.CreateToken(tokenDescriptor);
 
-        return tokenHandler.WriteToken(token);
+        var tokenValue = tokenHandler.WriteToken(token);
+        return new TokenResult(tokenValue, expiresAt);
     }
     
     private ClaimsPrincipal? ReadAndValidateToken(string token)

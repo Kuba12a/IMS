@@ -39,7 +39,7 @@ public class IdentityDomainService : IIdentityDomainService
         var accessToken = _securityTokenService.CreateAccessToken(identity.Id);
         var refreshToken = _securityTokenService.CreateRefreshToken(identity.Id);
         
-        identity.AddSession(StringHasher.Hash(refreshToken), ipAddress);
+        identity.AddSession(StringHasher.Hash(refreshToken.Value), ipAddress);
 
         return new LoginResult(identity, idToken, accessToken, refreshToken);
     }

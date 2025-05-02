@@ -4,7 +4,9 @@ using FluentValidation;
 using Platform.Application.InfrastructureInterfaces;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Platform.Application.Constants;
 using Platform.Application.Services.Auth;
+using Platform.Application.Services.Cookies;
 using Platform.Application.ViewModels;
 using Platform.Domain.Constants;
 using Platform.Domain.DomainServices;
@@ -25,7 +27,7 @@ public class IdentityLoginCommandValidator : AbstractValidator<IdentityLoginComm
     }
 }
 
-public class IdentityLoginCommand : IRequest<IdentityLoginViewModel>
+public class IdentityLoginCommand : IRequest<IdentityTokensViewModel>
 {
     public string AuthCode { get; }
     public string CodeVerifier { get; }
@@ -37,23 +39,23 @@ public class IdentityLoginCommand : IRequest<IdentityLoginViewModel>
     }
 }
 
-internal class IdentityLoginCommandHandler : IRequestHandler<IdentityLoginCommand, IdentityLoginViewModel>
+internal class IdentityLoginCommandHandler : IRequestHandler<IdentityLoginCommand, IdentityTokensViewModel>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIdentityDomainService _identityDomainService;
-    private readonly ISecurityTokenService _securityTokenService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ICookieService _cookieService;
 
     public IdentityLoginCommandHandler(IUnitOfWork unitOfWork, IIdentityDomainService identityDomainService,
-        ISecurityTokenService securityTokenService, IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor, ICookieService cookieService)
     {
         _unitOfWork = unitOfWork;
         _identityDomainService = identityDomainService;
-        _securityTokenService = securityTokenService;
         _httpContextAccessor = httpContextAccessor;
+        _cookieService = cookieService;
     }
 
-    public async Task<IdentityLoginViewModel> Handle(IdentityLoginCommand command,
+    public async Task<IdentityTokensViewModel> Handle(IdentityLoginCommand command,
         CancellationToken cancellationToken)
     {
         var ipAddress = _httpContextAccessor.HttpContext.Connection.RemoteIpAddress.ToString();
@@ -81,6 +83,26 @@ internal class IdentityLoginCommandHandler : IRequestHandler<IdentityLoginComman
         
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         
-        return new IdentityLoginViewModel(loginResult.IdToken, loginResult.AccessToken, loginResult.RefreshToken);
+        _cookieService.SetCookie(AuthConstants.AccessTokenCookieName, loginResult.AccessToken.Value,
+            loginResult.AccessToken.ExpiresAt, options: new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = loginResult.AccessToken.ExpiresAt,
+                Path = "/"
+            });
+        
+        _cookieService.SetCookie(AuthConstants.RefreshTokenCookieName, loginResult.RefreshToken.Value,
+            loginResult.RefreshToken.ExpiresAt, options: new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = loginResult.RefreshToken.ExpiresAt,
+                Path = "/Identity/refresh-token"
+            });
+        
+        return new IdentityTokensViewModel(loginResult.IdToken.Value);
     }
 }
