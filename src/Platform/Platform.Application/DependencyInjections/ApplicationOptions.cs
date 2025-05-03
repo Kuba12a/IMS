@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Platform.Application.Common.Behavior;
 using Platform.Application.Services.Auth;
 using Platform.Application.Services.Cookies;
+using Platform.Application.Services.RateLimit;
 
 namespace Platform.Application.DependencyInjections;
 
@@ -42,5 +43,7 @@ internal class ApplicationOptions : IApplicationOptions
         _services.AddScoped<IAuthenticationContextService, AuthenticationContextService>();
         
         _services.AddScoped<ICookieService, CookieService>();
+
+        _services.AddScoped<IRateLimitService, RateLimitService>();
     }
 }

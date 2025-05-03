@@ -151,6 +151,7 @@ public static class DependencyInjection
                 infrastructureBuilder.AddGateways(gatewaysBuilder =>
                 {
                     gatewaysBuilder.AddSmtpGateway(platformSettings.SmtpSettings);
+                    gatewaysBuilder.AddRedisGateway(platformSettings.RedisSettings);
                 });
             });
         

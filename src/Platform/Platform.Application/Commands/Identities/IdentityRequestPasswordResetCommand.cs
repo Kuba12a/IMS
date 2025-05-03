@@ -2,6 +2,8 @@ using FluentValidation;
 using Platform.Application.InfrastructureInterfaces;
 using Platform.Domain.Repositories;
 using MediatR;
+using Platform.Application.Constants;
+using Platform.Application.Services.RateLimit;
 using Platform.Application.ViewModels;
 
 #pragma warning disable CS8620
@@ -33,18 +35,28 @@ internal class IdentityRequestPasswordResetCommandHandler : IRequestHandler<Iden
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIdentityRepository _identityRepository;
     private readonly IEmailGateway _emailGateway;
+    private readonly IRateLimitService _rateLimitService;
 
     public IdentityRequestPasswordResetCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository,
-        IEmailGateway emailGateway)
+        IEmailGateway emailGateway, IRateLimitService rateLimitService)
     {
         _unitOfWork = unitOfWork;
         _identityRepository = identityRepository;
         _emailGateway = emailGateway;
+        _rateLimitService = rateLimitService;
     }
 
     public async Task<SuccessResultViewModel> Handle(IdentityRequestPasswordResetCommand command,
         CancellationToken cancellationToken)
     {
+        await _rateLimitService.TryIncrementAttemptCounterAsync(
+            keyPrefix: AuthConstants.RequestPasswordResetAttemptCountKeyPrefix,
+            identifier: command.Email,
+            message: AuthConstants.RequestPasswordResetAttemptExceptionMessage,
+            attemptLimit: AuthConstants.RequestPasswordResetAttemptLimit,
+            keyExpiresIn: AuthConstants.RequestPasswordResetAttemptLockDuration
+        );
+        
         var identity = await _identityRepository
             .FirstOrDefaultByEmailAsync(command.Email, cancellationToken);
 
