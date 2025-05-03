@@ -88,9 +88,10 @@ internal class IdentityRefreshTokenCommandHandler : IRequestHandler<IdentityRefr
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.Lax,
                 Expires = accessToken.ExpiresAt,
-                Path = "/"
+                Path = "/",
+                // Domain = ".example.localhost"
             });
         
         _cookieService.SetCookie(AuthConstants.RefreshTokenCookieName, newRefreshToken.Value,
@@ -98,9 +99,10 @@ internal class IdentityRefreshTokenCommandHandler : IRequestHandler<IdentityRefr
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.Lax,
                 Expires = newRefreshToken.ExpiresAt,
-                Path = "/Identity/refresh-token"
+                Path = "/Identity/refresh-token",
+                // Domain = ".example.localhost"
             });
         
         _cookieService.SetCookie(AuthConstants.RefreshTokenCookieName, newRefreshToken.Value,
@@ -108,9 +110,10 @@ internal class IdentityRefreshTokenCommandHandler : IRequestHandler<IdentityRefr
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.Lax,
                 Expires = newRefreshToken.ExpiresAt,
-                Path = "/Identity/logout"
+                Path = "/Identity/logout",
+                // Domain = ".example.localhost"
             });
         
         return new IdentityTokensViewModel(idToken.Value);

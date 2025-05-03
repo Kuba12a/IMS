@@ -24,7 +24,7 @@ public class Identity : Entity, IAggregate
     public List<LoginAttempt> LoginAttempts { get; private init; }
     public List<Session> Sessions { get; private init; }
     public bool RequireMfa { get; set; }
-    public static IdentityCreateResult Create(string email, string name, string password)
+    public static IdentityCreateResult Create(string email, string name, string password, string pepper)
     {
         var emailConfirmationToken = AlphanumericRandomStringGenerator
             .GenerateAlphanumericToken(DomainConstants.EmailConfirmationTokenLength);
@@ -34,7 +34,7 @@ public class Identity : Entity, IAggregate
             Id = Guid.NewGuid(),
             Email = email.ToLower(),
             Name = name,
-            PasswordHash = PasswordHasher.Hash(password),
+            PasswordHash = BcryptUtils.HashPassword(password, pepper),
             CreatedAt = Clock.Now,
             UpdatedAt = Clock.Now,
             EmailConfirmed = false,
@@ -46,9 +46,9 @@ public class Identity : Entity, IAggregate
         }, emailConfirmationToken);
     }
     
-    public IdentityInitiateLoginResult InitiateLogin(string password, string codeChallenge)
+    public IdentityInitiateLoginResult InitiateLogin(string password, string pepper, string codeChallenge)
     {
-        if (PasswordHash == default || !PasswordHasher.Verify(password, PasswordHash))
+        if (PasswordHash == default || !BcryptUtils.VerifyPassword(password, PasswordHash, pepper))
         {
             throw new DomainException("Invalid Credentials");
         }
@@ -131,14 +131,14 @@ public class Identity : Entity, IAggregate
         return new IdentityRequestPasswordResetResult(token);
     }
 
-    public void ResetPassword(string newPassword)
+    public void ResetPassword(string newPassword, string pepper)
     {
         if (PasswordResetTokenValidTo < Clock.Now)
         {
             throw new DomainException(DomainExceptionMessages.TokenExpired);
         }
         
-        PasswordHash = PasswordHasher.Hash(newPassword);
+        PasswordHash = BcryptUtils.HashPassword(newPassword, pepper);
         PasswordResetTokenHash =  null;
         PasswordResetTokenValidTo = null;
         UpdatedAt = Clock.Now;
@@ -197,14 +197,14 @@ public class Identity : Entity, IAggregate
         UpdatedAt = Clock.Now;
     }
 
-    public void ChangePassword(string oldPassword, string newPassword)
+    public void ChangePassword(string oldPassword, string pepper, string newPassword)
     {
-        if (PasswordHash == null || !PasswordHasher.Verify(oldPassword, PasswordHash))
+        if (PasswordHash == null || !BcryptUtils.VerifyPassword(oldPassword, PasswordHash, pepper))
         {
             throw new DomainException(DomainExceptionMessages.InvalidCredentials);
         }
 
-        PasswordHash = PasswordHasher.Hash(newPassword);
+        PasswordHash = BcryptUtils.HashPassword(newPassword, pepper);
 
         UpdatedAt = Clock.Now;
     }

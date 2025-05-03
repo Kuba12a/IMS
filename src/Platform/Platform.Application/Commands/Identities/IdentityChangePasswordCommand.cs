@@ -38,13 +38,15 @@ internal class IdentityChangePasswordCommandHandler : IRequestHandler<IdentityCh
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIdentityRepository _identityRepository;
     private readonly IAuthenticationContextService _authenticationContextService;
+    private readonly PasswordSettings _passwordSettings;
 
     public IdentityChangePasswordCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository, 
-        IAuthenticationContextService authenticationContextService)
+        IAuthenticationContextService authenticationContextService, PasswordSettings passwordSettings)
     {
         _unitOfWork = unitOfWork;
         _identityRepository = identityRepository;
         _authenticationContextService = authenticationContextService;
+        _passwordSettings = passwordSettings;
     }
 
     public async Task<SuccessResultViewModel> Handle(IdentityChangePasswordCommand command,
@@ -60,7 +62,7 @@ internal class IdentityChangePasswordCommandHandler : IRequestHandler<IdentityCh
             throw new AuthorizationException();
         }
         
-        identity.ChangePassword(command.Password, command.NewPassword);
+        identity.ChangePassword(command.Password, command.NewPassword, _passwordSettings.Pepper);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -41,13 +41,15 @@ internal class IdentityCreateCommandHandler : IRequestHandler<IdentityCreateComm
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIdentityRepository _identityRepository;
     private readonly IEmailGateway _emailGateway;
+    private readonly PasswordSettings _passwordSettings;
 
     public IdentityCreateCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository,
-        IEmailGateway emailGateway)
+        IEmailGateway emailGateway, PasswordSettings passwordSettings)
     {
         _unitOfWork = unitOfWork;
         _identityRepository = identityRepository;
         _emailGateway = emailGateway;
+        _passwordSettings = passwordSettings;
     }
 
     public async Task<SuccessResultViewModel> Handle(IdentityCreateCommand command,
@@ -61,7 +63,7 @@ internal class IdentityCreateCommandHandler : IRequestHandler<IdentityCreateComm
             throw new LogicException("Identity with given email already exists");
         }
 
-        var identityCreateResult = Identity.Create(command.Email, command.Name, command.Password);
+        var identityCreateResult = Identity.Create(command.Email, command.Name, command.Password, _passwordSettings.Pepper);
         
         await _identityRepository.AddAsync(identityCreateResult.Identity, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
