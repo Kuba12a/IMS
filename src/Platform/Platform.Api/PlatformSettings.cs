@@ -2,6 +2,7 @@ using Common.Types.Settings;
 using FluentValidation;
 using Platform.Application;
 using Platform.Application.Services.Auth;
+using Platform.Application.Services.UrlBuilder;
 using Platform.Infrastructure.Gateways.Redis;
 using Platform.Infrastructure.Gateways.Smtp;
 
@@ -16,6 +17,7 @@ public class PlatformSettingsValidator : AbstractValidator<PlatformSettings>
         RuleFor(settings => settings.SmtpSettings).NotNull();
         RuleFor(settings => settings.PasswordSettings).NotNull();
         RuleFor(settings => settings.RedisSettings).NotNull();
+        RuleFor(settings => settings.UrlBuilderServiceSettings).NotNull();
     }
 }
 
@@ -26,6 +28,7 @@ public class PlatformSettings : IValidatable
     public SmtpSettings SmtpSettings { get; set; }
     public PasswordSettings PasswordSettings { get; set; }
     public RedisSettings RedisSettings { get; set; }
+    public UrlBuilderServiceSettings UrlBuilderServiceSettings { get; set; }
 
     public void Validate()
     {
@@ -35,5 +38,6 @@ public class PlatformSettings : IValidatable
         SmtpSettings.Validate();
         PasswordSettings.Validate();
         RedisSettings.Validate();
+        UrlBuilderServiceSettings.Validate();
     }
 }
