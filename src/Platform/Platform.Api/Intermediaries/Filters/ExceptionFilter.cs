@@ -59,6 +59,15 @@ public class ExceptionFilter : IExceptionFilter
                 StatusCode = 401,
                 ExceptionLogType = ExceptionLogType.Default
             },
+            RateLimitException e => new ObjectResultWrapper(new
+            {
+                Type = "rate_limit",
+                e.Message,
+            })
+            {
+                StatusCode = 429,
+                ExceptionLogType = ExceptionLogType.Default
+            },
             AuthorizationException e => new ObjectResultWrapper(new
             {
                 Type = "authorization",

@@ -6,6 +6,7 @@ using Platform.Domain.Repositories;
 using MediatR;
 using Platform.Application.Constants;
 using Platform.Application.Services.Cookies;
+using Platform.Application.Services.RateLimit;
 using Platform.Application.ViewModels;
 using Platform.Domain.Constants;
 using Platform.Domain.Dtos;
@@ -48,20 +49,31 @@ internal class IdentityInitiateLoginCommandHandler : IRequestHandler<IdentityIni
     private readonly IEmailGateway _emailGateway;
     private readonly ICookieService _cookieService;
     private readonly PasswordSettings _passwordSettings;
+    private readonly IRateLimitService _rateLimitService;
 
     public IdentityInitiateLoginCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository,
-        IEmailGateway emailGateway, ICookieService cookieService, PasswordSettings passwordSettings)
+        IEmailGateway emailGateway, ICookieService cookieService, PasswordSettings passwordSettings,
+        IRateLimitService rateLimitService)
     {
         _unitOfWork = unitOfWork;
         _identityRepository = identityRepository;
         _emailGateway = emailGateway;
         _cookieService = cookieService;
         _passwordSettings = passwordSettings;
+        _rateLimitService = rateLimitService;
     }
 
     public async Task<IdentityInitiateLoginViewModel> Handle(IdentityInitiateLoginCommand command,
         CancellationToken cancellationToken)
     {
+        await _rateLimitService.TryIncrementAttemptCounterAsync(
+            keyPrefix: AuthConstants.LoginAttemptCountKeyPrefix,
+            identifier: command.Email,
+            message: AuthConstants.LoginAttemptExceptionMessage,
+            attemptLimit: AuthConstants.LoginAttemptLimit,
+            keyExpiresIn: AuthConstants.LoginAttemptLockDuration
+        );
+        
         var identity = await _identityRepository
             .FirstOrDefaultByEmailAsync(command.Email, cancellationToken);
 
