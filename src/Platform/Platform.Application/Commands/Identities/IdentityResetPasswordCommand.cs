@@ -4,6 +4,7 @@ using FluentValidation;
 using Platform.Application.InfrastructureInterfaces;
 using Platform.Domain.Repositories;
 using MediatR;
+using Platform.Application.Validators;
 using Platform.Application.ViewModels;
 
 #pragma warning disable CS8620
@@ -17,7 +18,7 @@ public class IdentityResetPasswordCommandValidator : AbstractValidator<IdentityR
     public IdentityResetPasswordCommandValidator()
     {
         RuleFor(command => command.Token).NotEmpty();
-        RuleFor(command => command.NewPassword).NotEmpty();
+        RuleFor(command => command.NewPassword).NotEmpty().Password();
     }
 }
 

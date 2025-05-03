@@ -4,6 +4,7 @@ using Platform.Application.InfrastructureInterfaces;
 using Platform.Domain.Models.Identities;
 using Platform.Domain.Repositories;
 using MediatR;
+using Platform.Application.Validators;
 using Platform.Application.ViewModels;
 
 #pragma warning disable CS8620
@@ -17,8 +18,8 @@ public class IdentityCreateCommandValidator : AbstractValidator<IdentityCreateCo
     public IdentityCreateCommandValidator()
     {
         RuleFor(command => command.Name).NotEmpty();
-        RuleFor(command => command.Email).NotEmpty();
-        RuleFor(command => command.Password).NotEmpty();
+        RuleFor(command => command.Email).NotEmpty().EmailAddress();
+        RuleFor(command => command.Password).NotEmpty().Password();
     }
 }
 
