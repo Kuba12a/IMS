@@ -6,13 +6,15 @@ using Platform.Application.Common.Behavior;
 using Platform.Application.Services.Auth;
 using Platform.Application.Services.Cookies;
 using Platform.Application.Services.RateLimit;
+using Platform.Application.Services.UrlBuilder;
 
 namespace Platform.Application.DependencyInjections;
 
 public interface IApplicationOptions
 {
     void AddCommandsAndQueries();
-    void AddServices(SecurityTokenSettings securityTokenSettings, PasswordSettings passwordSettings);
+    void AddServices(SecurityTokenSettings securityTokenSettings, PasswordSettings passwordSettings,
+        UrlBuilderServiceSettings urlBuilderServiceSettings);
 }
 
 internal class ApplicationOptions : IApplicationOptions
@@ -33,17 +35,16 @@ internal class ApplicationOptions : IApplicationOptions
         _services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
     }
     
-    public void AddServices(SecurityTokenSettings securityTokenSettings, PasswordSettings passwordSettings)
+    public void AddServices(SecurityTokenSettings securityTokenSettings, PasswordSettings passwordSettings,
+        UrlBuilderServiceSettings urlBuilderServiceSettings)
     {
         _services.AddSingleton(securityTokenSettings);
         _services.AddSingleton(passwordSettings);
 
         _services.AddSingleton<ISecurityTokenService, SecurityTokenService>();
-        
         _services.AddScoped<IAuthenticationContextService, AuthenticationContextService>();
-        
         _services.AddScoped<ICookieService, CookieService>();
-
         _services.AddScoped<IRateLimitService, RateLimitService>();
+        _services.AddSingleton<IUrlBuilderService>(_ => new UrlBuilderService(urlBuilderServiceSettings));
     }
 }

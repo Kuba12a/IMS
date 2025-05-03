@@ -4,6 +4,7 @@ using Platform.Domain.Repositories;
 using MediatR;
 using Platform.Application.Constants;
 using Platform.Application.Services.RateLimit;
+using Platform.Application.Services.UrlBuilder;
 using Platform.Application.ViewModels;
 
 #pragma warning disable CS8620
@@ -36,14 +37,16 @@ internal class IdentityRequestPasswordResetCommandHandler : IRequestHandler<Iden
     private readonly IIdentityRepository _identityRepository;
     private readonly IEmailGateway _emailGateway;
     private readonly IRateLimitService _rateLimitService;
+    private readonly IUrlBuilderService _urlBuilderService;
 
     public IdentityRequestPasswordResetCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository,
-        IEmailGateway emailGateway, IRateLimitService rateLimitService)
+        IEmailGateway emailGateway, IRateLimitService rateLimitService, IUrlBuilderService urlBuilderService)
     {
         _unitOfWork = unitOfWork;
         _identityRepository = identityRepository;
         _emailGateway = emailGateway;
         _rateLimitService = rateLimitService;
+        _urlBuilderService = urlBuilderService;
     }
 
     public async Task<SuccessResultViewModel> Handle(IdentityRequestPasswordResetCommand command,
@@ -77,8 +80,10 @@ internal class IdentityRequestPasswordResetCommandHandler : IRequestHandler<Iden
 
     private async Task SendPasswordResetEmail(string sendTo, string passwordResetToken, CancellationToken cancellationToken)
     {
+        var passwordResetUrl = _urlBuilderService.BuildResetPasswordUrl(passwordResetToken);
+        
         await _emailGateway.SendEmailAsync("Password Reset",
-            $"Reset your password: {passwordResetToken}",
+            $"Reset your password: {passwordResetUrl}",
             sendTo,
             cancellationToken);
     }

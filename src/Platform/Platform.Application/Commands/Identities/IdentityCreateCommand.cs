@@ -4,6 +4,7 @@ using Platform.Application.InfrastructureInterfaces;
 using Platform.Domain.Models.Identities;
 using Platform.Domain.Repositories;
 using MediatR;
+using Platform.Application.Services.UrlBuilder;
 using Platform.Application.Validators;
 using Platform.Application.ViewModels;
 
@@ -43,14 +44,16 @@ internal class IdentityCreateCommandHandler : IRequestHandler<IdentityCreateComm
     private readonly IIdentityRepository _identityRepository;
     private readonly IEmailGateway _emailGateway;
     private readonly PasswordSettings _passwordSettings;
+    private readonly IUrlBuilderService _urlBuilderService;
 
     public IdentityCreateCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository,
-        IEmailGateway emailGateway, PasswordSettings passwordSettings)
+        IEmailGateway emailGateway, PasswordSettings passwordSettings, IUrlBuilderService urlBuilderService)
     {
         _unitOfWork = unitOfWork;
         _identityRepository = identityRepository;
         _emailGateway = emailGateway;
         _passwordSettings = passwordSettings;
+        _urlBuilderService = urlBuilderService;
     }
 
     public async Task<SuccessResultViewModel> Handle(IdentityCreateCommand command,
@@ -77,8 +80,10 @@ internal class IdentityCreateCommandHandler : IRequestHandler<IdentityCreateComm
 
     private async Task SendWelcomeEmail(string sendTo, string confirmationToken, CancellationToken cancellationToken)
     {
+        var confirmEmailUrl = _urlBuilderService.BuildConfirmEmailUrl(confirmationToken);
+
         await _emailGateway.SendEmailAsync("Welcome",
-            $"Please confirm your account: {confirmationToken}",
+            $"Please confirm your account: {confirmEmailUrl}",
             sendTo,
             cancellationToken);
     }
