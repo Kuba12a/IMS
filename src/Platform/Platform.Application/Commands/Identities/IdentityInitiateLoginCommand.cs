@@ -47,14 +47,16 @@ internal class IdentityInitiateLoginCommandHandler : IRequestHandler<IdentityIni
     private readonly IIdentityRepository _identityRepository;
     private readonly IEmailGateway _emailGateway;
     private readonly ICookieService _cookieService;
+    private readonly PasswordSettings _passwordSettings;
 
     public IdentityInitiateLoginCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository,
-        IEmailGateway emailGateway, ICookieService cookieService)
+        IEmailGateway emailGateway, ICookieService cookieService, PasswordSettings passwordSettings)
     {
         _unitOfWork = unitOfWork;
         _identityRepository = identityRepository;
         _emailGateway = emailGateway;
         _cookieService = cookieService;
+        _passwordSettings = passwordSettings;
     }
 
     public async Task<IdentityInitiateLoginViewModel> Handle(IdentityInitiateLoginCommand command,
@@ -72,7 +74,7 @@ internal class IdentityInitiateLoginCommandHandler : IRequestHandler<IdentityIni
         
         try
         {
-            initiateLoginResult = identity.InitiateLogin(command.Password, command.CodeChallenge);
+            initiateLoginResult = identity.InitiateLogin(command.Password, _passwordSettings.Pepper, command.CodeChallenge);
 
         }
         catch (DomainException exception)

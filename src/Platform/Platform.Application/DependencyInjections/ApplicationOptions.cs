@@ -11,7 +11,7 @@ namespace Platform.Application.DependencyInjections;
 public interface IApplicationOptions
 {
     void AddCommandsAndQueries();
-    void AddServices(SecurityTokenSettings securityTokenSettings);
+    void AddServices(SecurityTokenSettings securityTokenSettings, PasswordSettings passwordSettings);
 }
 
 internal class ApplicationOptions : IApplicationOptions
@@ -32,10 +32,11 @@ internal class ApplicationOptions : IApplicationOptions
         _services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
     }
     
-    public void AddServices(SecurityTokenSettings securityTokenSettings)
+    public void AddServices(SecurityTokenSettings securityTokenSettings, PasswordSettings passwordSettings)
     {
         _services.AddSingleton(securityTokenSettings);
-        
+        _services.AddSingleton(passwordSettings);
+
         _services.AddSingleton<ISecurityTokenService, SecurityTokenService>();
         
         _services.AddScoped<IAuthenticationContextService, AuthenticationContextService>();

@@ -110,10 +110,12 @@ public static class DependencyInjection
             });
         }
         
+        
         app.UseCors(x => x
+            .SetIsOriginAllowed(_ => true)
+            // .WithOrigins("https://app.example.localhost:3001", "https://api.example.localhost:3000")
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .SetIsOriginAllowed(_ => true)
             .AllowCredentials());
 
         app.UseRouting();
@@ -141,7 +143,7 @@ public static class DependencyInjection
             .AddApplication(applicationBuilder =>
             {
                 applicationBuilder.AddCommandsAndQueries();
-                applicationBuilder.AddServices(platformSettings.SecurityTokenSettings);
+                applicationBuilder.AddServices(platformSettings.SecurityTokenSettings, platformSettings.PasswordSettings);
             })
             .AddInfrastructure(infrastructureBuilder =>
             {

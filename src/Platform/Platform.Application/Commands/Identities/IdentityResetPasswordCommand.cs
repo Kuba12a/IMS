@@ -37,11 +37,14 @@ internal class IdentityResetPasswordCommandHandler : IRequestHandler<IdentityRes
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IIdentityRepository _identityRepository;
+    private readonly PasswordSettings _passwordSettings;
 
-    public IdentityResetPasswordCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository)
+    public IdentityResetPasswordCommandHandler(IUnitOfWork unitOfWork, IIdentityRepository identityRepository,
+        PasswordSettings passwordSettings)
     {
         _unitOfWork = unitOfWork;
         _identityRepository = identityRepository;
+        _passwordSettings = passwordSettings;
     }
 
     public async Task<SuccessResultViewModel> Handle(IdentityResetPasswordCommand command,
@@ -57,7 +60,7 @@ internal class IdentityResetPasswordCommandHandler : IRequestHandler<IdentityRes
             throw new LogicException("Invalid reset password token");
         }
 
-        identity.ResetPassword(command.NewPassword);
+        identity.ResetPassword(command.NewPassword, _passwordSettings.Pepper);
         
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
