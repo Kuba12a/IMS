@@ -20,4 +20,7 @@ public static class AuthConstants
     public const string RequestPasswordResetAttemptCountKeyPrefix = "request_password_reset_attempt_count";
     public const int RequestPasswordResetAttemptLimit = 1;
     public static readonly TimeSpan RequestPasswordResetAttemptLockDuration = TimeSpan.FromMinutes(5);
+
+    public const int MinPasswordLength = 13;
+    public const int MaxPasswordLength = 20;
 }

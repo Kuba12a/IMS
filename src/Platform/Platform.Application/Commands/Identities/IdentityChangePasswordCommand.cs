@@ -4,6 +4,7 @@ using Platform.Application.InfrastructureInterfaces;
 using Platform.Domain.Repositories;
 using MediatR;
 using Platform.Application.Services.Auth;
+using Platform.Application.Validators;
 using Platform.Application.ViewModels;
 
 #pragma warning disable CS8620
@@ -17,7 +18,7 @@ public class IdentityChangePasswordCommandValidator : AbstractValidator<Identity
     public IdentityChangePasswordCommandValidator()
     {
         RuleFor(command => command.Password).NotEmpty();
-        RuleFor(command => command.NewPassword).NotEmpty();
+        RuleFor(command => command.NewPassword).NotEmpty().Password();
     }
 }
 
