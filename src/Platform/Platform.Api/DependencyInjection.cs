@@ -107,13 +107,14 @@ public static class DependencyInjection
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Platform API v1");
                 c.RoutePrefix = string.Empty;
+                c.ConfigObject.AdditionalItems["withCredentials"] = true;
             });
         }
         
         
         app.UseCors(x => x
-            .SetIsOriginAllowed(_ => true)
-            // .WithOrigins("https://app.example.localhost:3001", "https://api.example.localhost:3000")
+            // .SetIsOriginAllowed(_ => true)
+            .WithOrigins("https://app.example.localhost:3001", "https://auth-app.example.localhost:3000")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials());
