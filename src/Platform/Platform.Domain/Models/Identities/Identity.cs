@@ -34,7 +34,7 @@ public class Identity : Entity, IAggregate
             Id = Guid.NewGuid(),
             Email = email.ToLower(),
             Name = name,
-            PasswordHash = BcryptUtils.HashPassword(password, pepper),
+            PasswordHash = Argon2IdUtils.HashPassword(password, pepper),
             CreatedAt = Clock.Now,
             UpdatedAt = Clock.Now,
             EmailConfirmed = false,
@@ -48,7 +48,7 @@ public class Identity : Entity, IAggregate
     
     public IdentityInitiateLoginResult InitiateLogin(string password, string pepper, string codeChallenge)
     {
-        if (PasswordHash == default || !BcryptUtils.VerifyPassword(password, PasswordHash, pepper))
+        if (PasswordHash == default || !Argon2IdUtils.VerifyPassword(password, PasswordHash, pepper))
         {
             throw new DomainException("Invalid Credentials");
         }
@@ -138,7 +138,7 @@ public class Identity : Entity, IAggregate
             throw new DomainException(DomainExceptionMessages.TokenExpired);
         }
         
-        PasswordHash = BcryptUtils.HashPassword(newPassword, pepper);
+        PasswordHash = Argon2IdUtils.HashPassword(newPassword, pepper);
         PasswordResetTokenHash =  null;
         PasswordResetTokenValidTo = null;
         UpdatedAt = Clock.Now;
@@ -199,12 +199,12 @@ public class Identity : Entity, IAggregate
 
     public void ChangePassword(string oldPassword, string pepper, string newPassword)
     {
-        if (PasswordHash == null || !BcryptUtils.VerifyPassword(oldPassword, PasswordHash, pepper))
+        if (PasswordHash == null || !Argon2IdUtils.VerifyPassword(oldPassword, PasswordHash, pepper))
         {
             throw new DomainException(DomainExceptionMessages.InvalidCredentials);
         }
 
-        PasswordHash = BcryptUtils.HashPassword(newPassword, pepper);
+        PasswordHash = Argon2IdUtils.HashPassword(newPassword, pepper);
 
         UpdatedAt = Clock.Now;
     }
