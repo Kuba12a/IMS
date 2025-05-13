@@ -67,7 +67,7 @@ internal class IdentityLogoutCommandHandler : IRequestHandler<IdentityLogoutComm
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.Lax,
+            SameSite = SameSiteMode.Strict,
             Path = "/",
             Domain = ".example.localhost"
         });
@@ -75,7 +75,7 @@ internal class IdentityLogoutCommandHandler : IRequestHandler<IdentityLogoutComm
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.Lax,
+            SameSite = SameSiteMode.Strict,
             Path = "/Identity/refresh-token",
             Domain = ".example.localhost"
         });
@@ -84,7 +84,7 @@ internal class IdentityLogoutCommandHandler : IRequestHandler<IdentityLogoutComm
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.Lax,
+            SameSite = SameSiteMode.Strict,
             Path = "/Identity/logout",
             Domain = ".example.localhost"
         });

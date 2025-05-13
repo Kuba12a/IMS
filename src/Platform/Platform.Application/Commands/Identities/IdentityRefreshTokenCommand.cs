@@ -88,7 +88,7 @@ internal class IdentityRefreshTokenCommandHandler : IRequestHandler<IdentityRefr
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.Strict,
                 Expires = accessToken.ExpiresAt,
                 Path = "/",
                 Domain = ".example.localhost"
@@ -99,7 +99,7 @@ internal class IdentityRefreshTokenCommandHandler : IRequestHandler<IdentityRefr
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.Strict,
                 Expires = newRefreshToken.ExpiresAt,
                 Path = "/Identity/refresh-token",
                 Domain = ".example.localhost"
@@ -110,7 +110,7 @@ internal class IdentityRefreshTokenCommandHandler : IRequestHandler<IdentityRefr
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Lax,
+                SameSite = SameSiteMode.Strict,
                 Expires = newRefreshToken.ExpiresAt,
                 Path = "/Identity/logout",
                 Domain = ".example.localhost"
