@@ -99,6 +99,10 @@ internal class IdentityInitiateLoginCommandHandler : IRequestHandler<IdentityIni
             };
         }
         
+        await _rateLimitService.ResetAttemptCounterAsync(
+            keyPrefix: AuthConstants.LoginAttemptCountKeyPrefix,
+            identifier: command.Email);
+        
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return await HandleInitiateLoginAsync(initiateLoginResult, identity, cancellationToken);

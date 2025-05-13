@@ -50,7 +50,7 @@ public class RedisGateway : IInMemoryDatabaseGateway
         {
             var db = _connectionMultiplexer.GetDatabase();
             var transaction = db.CreateTransaction();
-            await transaction.KeyDeleteAsync(key);
+            transaction.KeyDeleteAsync(key);
             result = await transaction.ExecuteAsync();
         }
         catch (Exception)

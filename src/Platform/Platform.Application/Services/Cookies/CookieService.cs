@@ -29,6 +29,8 @@ public class CookieService : ICookieService
             Secure = true,
             SameSite = SameSiteMode.Strict,
             Expires = expiresAt,
+            Path = "Identity/confirm-two-factor-email-code",
+            Domain = ".example.localhost"
         };
 
         _httpContextAccessor.HttpContext.Response.Cookies.Append(key, value, options);

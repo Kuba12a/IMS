@@ -63,15 +63,30 @@ internal class IdentityLogoutCommandHandler : IRequestHandler<IdentityLogoutComm
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        _cookieService.DeleteCookie(AuthConstants.AccessTokenCookieName);
+        _cookieService.DeleteCookie(AuthConstants.AccessTokenCookieName, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = "/",
+            Domain = ".example.localhost"
+        });
         _cookieService.DeleteCookie(AuthConstants.RefreshTokenCookieName, new CookieOptions
         {
-            Path = "/Identity/logout"
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = "/Identity/refresh-token",
+            Domain = ".example.localhost"
         });
         
         _cookieService.DeleteCookie(AuthConstants.RefreshTokenCookieName, new CookieOptions
         {
-            Path = "/Identity/refresh-token"
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Path = "/Identity/logout",
+            Domain = ".example.localhost"
         });
         
         return new SuccessResultViewModel(true);
